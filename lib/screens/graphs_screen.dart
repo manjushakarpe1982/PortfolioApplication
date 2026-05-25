@@ -89,19 +89,48 @@ class _GraphsScreenState extends State<GraphsScreen> {
           d.lowSilver > 0 ||
           d.closeSilver > 0,
     );
-    // Check if Silver data is available, if not, fallback to Gold
-    if (!hasSilverData && metalFilter == 'Silver') {
-      metalFilter =
-          'Gold'; // Automatically select 'Gold' if 'Silver' is unavailable
+    final hasPlatinumData = data.any(
+      // ✅ NEW
+      (d) =>
+          d.openPlatinum > 0 ||
+          d.highPlatinum > 0 ||
+          d.lowPlatinum > 0 ||
+          d.closePlatinum > 0,
+    );
+    final hasPalladiumData = data.any(
+      // ✅ NEW
+      (d) =>
+          d.openPalladium > 0 ||
+          d.highPalladium > 0 ||
+          d.lowPalladium > 0 ||
+          d.closePalladium > 0,
+    );
+
+    // ✅ Smart fallback — if current metalFilter has no data, pick first available
+    final Map<String, bool> availability = {
+      'Silver': hasSilverData,
+      'Gold': hasGoldData,
+      'Platinum': hasPlatinumData,
+      'Palladium': hasPalladiumData,
+    };
+
+    if (availability[metalFilter] == false) {
+      // fallback to first available metal
+      final fallback = availability.entries.firstWhere(
+        (e) => e.value,
+        orElse: () => MapEntry('Gold', false),
+      );
+      metalFilter = fallback.key;
     }
 
-    if (!hasGoldData && hasSilverData) {
-      return 'Silver';
-    } else if (hasGoldData && !hasSilverData) {
-      return 'Gold';
-    } else {
-      return 'All'; // Default fallback
-    }
+    // Return detected dominant metal
+    final availableCount = availability.values.where((v) => v).length;
+    if (availableCount > 1) return 'All';
+    if (hasGoldData) return 'Gold';
+    if (hasSilverData) return 'Silver';
+    if (hasPlatinumData) return 'Platinum';
+    if (hasPalladiumData) return 'Palladium';
+    return 'All';
   }
 
   bool _isLoading = false;
@@ -263,6 +292,21 @@ class _GraphsScreenState extends State<GraphsScreen> {
                 d.lowSilver > 0 ||
                 d.closeSilver > 0,
           );
+          final hasPlatinumData = metalCandleChartData.any(
+            (d) =>
+                d.openPlatinum > 0 ||
+                d.highPlatinum > 0 ||
+                d.lowPlatinum > 0 ||
+                d.closePlatinum > 0,
+          );
+          final hasPalladiumData = metalCandleChartData.any(
+            (d) =>
+                d.openPalladium > 0 ||
+                d.highPalladium > 0 ||
+                d.lowPalladium > 0 ||
+                d.closePalladium > 0,
+          );
+
           final hasAllData = metalCandleChartData.any(
             (d) =>
                 d.openMetal > 0 ||
@@ -271,15 +315,13 @@ class _GraphsScreenState extends State<GraphsScreen> {
                 d.closeMetal > 0,
           );
           // Dynamically build button list
-          final List<String> filterOptions = [];
 
-          if (hasGoldData && hasSilverData) {
-            filterOptions.addAll(['All', 'Gold', 'Silver']);
-          } else if (hasGoldData) {
-            filterOptions.add('Gold');
-          } else if (hasSilverData) {
-            filterOptions.add('Silver');
-          }
+          final List<String> filterOptions = [];
+          if (hasGoldData && hasSilverData) filterOptions.add('All');
+          if (hasGoldData) filterOptions.add('Gold');
+          if (hasSilverData) filterOptions.add('Silver');
+          if (hasPlatinumData) filterOptions.add('Platinum');
+          if (hasPalladiumData) filterOptions.add('Palladium');
 
           return SingleChildScrollView(
             padding: const EdgeInsets.only(bottom: 5),

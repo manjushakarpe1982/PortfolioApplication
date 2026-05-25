@@ -354,6 +354,14 @@ class MetalCandleChartEntry {
   final double closeMetal;
   final double highMetal;
   final double lowMetal;
+  final double openPlatinum;
+  final double highPlatinum;
+  final double lowPlatinum;
+  final double closePlatinum;
+  final double openPalladium;
+  final double highPalladium;
+  final double lowPalladium;
+  final double closePalladium;
 
   MetalCandleChartEntry({
     required this.intervalStart,
@@ -369,6 +377,14 @@ class MetalCandleChartEntry {
     required this.closeMetal,
     required this.highMetal,
     required this.lowMetal,
+    required this.openPlatinum,
+    required this.highPlatinum,
+    required this.lowPlatinum,
+    required this.closePlatinum,
+    required this.openPalladium,
+    required this.highPalladium,
+    required this.lowPalladium,
+    required this.closePalladium,
   });
 
   factory MetalCandleChartEntry.fromJson(Map<String, dynamic> json) {
@@ -388,6 +404,14 @@ class MetalCandleChartEntry {
       closeMetal: (json['closeMetal'] ?? 0).toDouble(),
       highMetal: (json['highMetal'] ?? 0).toDouble(),
       lowMetal: (json['lowMetal'] ?? 0).toDouble(),
+      openPlatinum: (json['openPlatinum'] ?? 0).toDouble(),
+      highPlatinum: (json['highPlatinum'] ?? 0).toDouble(),
+      lowPlatinum: (json['lowPlatinum'] ?? 0).toDouble(),
+      closePlatinum: (json['closePlatinum'] ?? 0).toDouble(),
+      openPalladium: (json['openPalladium'] ?? 0).toDouble(),
+      highPalladium: (json['highPalladium'] ?? 0).toDouble(),
+      lowPalladium: (json['lowPalladium'] ?? 0).toDouble(),
+      closePalladium: (json['closePalladium'] ?? 0).toDouble(),
     );
   }
 }

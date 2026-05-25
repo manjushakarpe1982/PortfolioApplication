@@ -143,18 +143,7 @@ class _DashboardScreenState extends State<BullionDashboard> {
 
           final portfolioData = portfolioProvider.portfolioData;
           final spotPrices = portfolioProvider.spotPrices;
-          if (spotPrices != null) {
-            // ADD THIS:
-            print("PNL from spot: ${spotPrices.data.pnl}");
-            print("dayPnlDollar: ${spotPrices.data.pnl?.dayPnlDollar}");
-          }
 
-          print("1. spotPrices null? ${spotPrices == null}");
-          print("2. data.pnl null? ${spotPrices?.data.pnl == null}");
-          print("3. dayPnlDollar: ${spotPrices?.data.pnl?.dayPnlDollar}");
-          print(
-            "4. dayChangePercentage: ${spotPrices?.data.pnl?.dayChangePercentage}",
-          );
           final pnl = spotPrices?.data.pnl;
 
           final double dayProfitLoss = pnl?.dayPnlDollar ?? 0;

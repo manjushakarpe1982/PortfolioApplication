@@ -36,22 +36,13 @@ class _MetalCandleChartState extends State<MetalCandleChart> {
 
   List<CandleData> _goldData = [];
   List<CandleData> _silverData = [];
+  List<CandleData> _platinumData = []; // ✅ NEW
+  List<CandleData> _palladiumData = []; // ✅ NEW
 
   @override
   void initState() {
     super.initState();
-    _goldData = _groupCandles(
-      widget.candleChartData,
-      5,
-      true,
-      widget.selectedMetal,
-    );
-    _silverData = _groupCandles(
-      widget.candleChartData,
-      5,
-      false,
-      widget.selectedMetal,
-    );
+    _buildAllSeriesData();
 
     _tooltipBehavior = TooltipBehavior(
       enable: true,
@@ -131,74 +122,105 @@ class _MetalCandleChartState extends State<MetalCandleChart> {
         oldWidget.selectedMetal != widget.selectedMetal ||
         oldWidget.showCombined != widget.showCombined) {
       setState(() {
-        _goldData = _groupCandles(
-          widget.candleChartData,
-          5,
-          true,
-          widget.selectedMetal,
-        );
-        _silverData = _groupCandles(
-          widget.candleChartData,
-          5,
-          false,
-          widget.selectedMetal,
-        );
+        _buildAllSeriesData();
       });
     }
   }
 
-  String formatPrice(num price) {
-    final format = NumberFormat.simpleCurrency(locale: 'en_US');
-    return format.format(price);
+  // ✅ NEW — build all 4 metal series in one place
+  void _buildAllSeriesData() {
+    _goldData = _groupCandles(widget.candleChartData, 5, 'Gold');
+    _silverData = _groupCandles(widget.candleChartData, 5, 'Silver');
+    _platinumData = _groupCandles(widget.candleChartData, 5, 'Platinum');
+    _palladiumData = _groupCandles(widget.candleChartData, 5, 'Palladium');
   }
 
+  String formatPrice(num price) {
+    return NumberFormat.simpleCurrency(locale: 'en_US').format(price);
+  }
+
+  String formatValue(num value) {
+    final absValue = value.abs();
+    if (absValue >= 1e9) return '${(value / 1e9).toStringAsFixed(1)}B';
+    if (absValue >= 1e6) return '${(value / 1e6).toStringAsFixed(1)}M';
+    if (absValue >= 1e3) return '${(value / 1e3).toStringAsFixed(1)}K';
+    return value.toStringAsFixed(0);
+  }
+
+  // ✅ UPDATED — metalType string instead of useGold bool
   List<CandleData> _groupCandles(
     List<MetalCandleChartEntry> data,
     int groupSize,
-    bool useGold,
-    String selectedMetal,
+    String metalType, // ✅ 'Gold' | 'Silver' | 'Platinum' | 'Palladium' | 'All'
   ) {
     final groupedData = <CandleData>[];
+
     for (int i = 0; i < data.length; i += groupSize) {
       final group = data.sublist(
         i,
         i + groupSize <= data.length ? i + groupSize : data.length,
       );
+
       if (group.isNotEmpty) {
-        final open = selectedMetal == 'All'
-            ? group[0].openMetal
-            : useGold
-            ? group[0].openGold
-            : group[0].openSilver;
-        final close = selectedMetal == 'All'
-            ? (group.last.closeMetal != 0
-                  ? group.last.closeMetal
-                  : group.last.openMetal)
-            : useGold
-            ? (group.last.closeGold != 0
-                  ? group.last.closeGold
-                  : group.last.openGold)
-            : (group.last.closeSilver != 0
-                  ? group.last.closeSilver
-                  : group.last.openSilver);
+        // ✅ open/close/high/low per metal
+        num open;
+        num close;
+        Iterable<num> highValues;
+        Iterable<num> lowValues;
 
-        final highValues = selectedMetal == 'All'
-            ? group.map((d) => d.highMetal).where((v) => v > 0)
-            : useGold
-            ? group.map((d) => d.highGold).where((v) => v > 0)
-            : group.map((d) => d.highSilver).where((v) => v > 0);
-        final lowValues = selectedMetal == 'All'
-            ? group.map((d) => d.lowMetal).where((v) => v > 0)
-            : useGold
-            ? group.map((d) => d.lowGold).where((v) => v > 0)
-            : group.map((d) => d.lowSilver).where((v) => v > 0);
+        switch (metalType) {
+          case 'Gold':
+            open = group[0].openGold;
+            close = group.last.closeGold != 0
+                ? group.last.closeGold
+                : group.last.openGold;
+            highValues = group.map((d) => d.highGold).where((v) => v > 0);
+            lowValues = group.map((d) => d.lowGold).where((v) => v > 0);
+            break;
+          case 'Silver':
+            open = group[0].openSilver;
+            close = group.last.closeSilver != 0
+                ? group.last.closeSilver
+                : group.last.openSilver;
+            highValues = group.map((d) => d.highSilver).where((v) => v > 0);
+            lowValues = group.map((d) => d.lowSilver).where((v) => v > 0);
+            break;
+          case 'Platinum': // ✅ NEW
+            open = group[0].openPlatinum;
+            close = group.last.closePlatinum != 0
+                ? group.last.closePlatinum
+                : group.last.openPlatinum;
+            highValues = group.map((d) => d.highPlatinum).where((v) => v > 0);
+            lowValues = group.map((d) => d.lowPlatinum).where((v) => v > 0);
+            break;
+          case 'Palladium': // ✅ NEW
+            open = group[0].openPalladium;
+            close = group.last.closePalladium != 0
+                ? group.last.closePalladium
+                : group.last.openPalladium;
+            highValues = group.map((d) => d.highPalladium).where((v) => v > 0);
+            lowValues = group.map((d) => d.lowPalladium).where((v) => v > 0);
+            break;
+          case 'All':
+          default:
+            open = group[0].openMetal;
+            close = group.last.closeMetal != 0
+                ? group.last.closeMetal
+                : group.last.openMetal;
+            highValues = group.map((d) => d.highMetal).where((v) => v > 0);
+            lowValues = group.map((d) => d.lowMetal).where((v) => v > 0);
+        }
 
-        final high = highValues.isNotEmpty
-            ? highValues.reduce((a, b) => a > b ? a : b)
-            : open;
-        final low = lowValues.isNotEmpty
-            ? lowValues.reduce((a, b) => a < b ? a : b)
-            : open;
+        // ✅ NEW — cast to List<double> before reduce
+        final highList = highValues.map((v) => v.toDouble()).toList();
+        final lowList = lowValues.map((v) => v.toDouble()).toList();
+
+        final high = highList.isNotEmpty
+            ? highList.reduce((a, b) => a > b ? a : b)
+            : open.toDouble();
+        final low = lowList.isNotEmpty
+            ? lowList.reduce((a, b) => a < b ? a : b)
+            : open.toDouble();
 
         if (open > 0 && high > 0 && low > 0 && close > 0) {
           groupedData.add(
@@ -214,6 +236,40 @@ class _MetalCandleChartState extends State<MetalCandleChart> {
       }
     }
     return groupedData;
+  }
+
+  // ✅ NEW — returns correct data source for selected metal
+  List<CandleData> get _dataSource {
+    switch (widget.selectedMetal) {
+      case 'Gold':
+        return _goldData;
+      case 'Silver':
+        return _silverData;
+      case 'Platinum':
+        return _platinumData;
+      case 'Palladium':
+        return _palladiumData;
+      case 'All':
+      default:
+        return _silverData; // All uses combined metal data
+    }
+  }
+
+  // ✅ NEW — dynamic chart title for all 4 metals
+  String get _chartTitle {
+    if (widget.showCombined) return 'Live All Holdings';
+    switch (widget.selectedMetal) {
+      case 'Gold':
+        return 'Live Gold Holdings';
+      case 'Silver':
+        return 'Live Silver Holdings';
+      case 'Platinum':
+        return 'Live Platinum Holdings';
+      case 'Palladium':
+        return 'Live Palladium Holdings';
+      default:
+        return 'Live Holdings';
+    }
   }
 
   Widget _buildChartButton(
@@ -240,25 +296,11 @@ class _MetalCandleChartState extends State<MetalCandleChart> {
     );
   }
 
-  String formatValue(num value) {
-    final absValue = value.abs();
-
-    if (absValue >= 1e9) {
-      return '${(value / 1e9).toStringAsFixed(1)}B';
-    } else if (absValue >= 1e6) {
-      return '${(value / 1e6).toStringAsFixed(1)}M';
-    } else if (absValue >= 1e3) {
-      return '${(value / 1e3).toStringAsFixed(1)}K';
-    } else {
-      return '${value.toStringAsFixed(0)}';
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    final dataSource = widget.selectedMetal == 'Gold' ? _goldData : _silverData;
+    // ✅ Uses _dataSource getter — covers all 4 metals
+    final dataSource = _dataSource;
 
-    // Determine initial visible range (last 12 candles) with padding
     const int visibleCandlesCount = 12;
     DateTime initialMin;
     DateTime initialMax;
@@ -270,7 +312,6 @@ class _MetalCandleChartState extends State<MetalCandleChart> {
         initialMin = dataSource[dataLength - visibleCandlesCount].x;
         initialMax = dataSource.last.x;
 
-        // Add half candle padding to both ends to avoid cutting
         final candleInterval = dataSource[1].x.difference(dataSource[0].x);
         initialMin = initialMin.subtract(candleInterval * 1.5);
         initialMax = initialMax.add(candleInterval * 1.5);
@@ -282,12 +323,10 @@ class _MetalCandleChartState extends State<MetalCandleChart> {
         initialMin = initialMin.subtract(candleInterval * 1.5);
         initialMax = initialMax.add(candleInterval * 1.5);
       } else {
-        // Only one candle
         initialMin = dataSource.first.x.subtract(const Duration(minutes: 5));
         initialMax = dataSource.first.x.add(const Duration(minutes: 5));
       }
     } else {
-      // No data, fallback to now
       initialMin = DateTime.now().subtract(const Duration(minutes: 5));
       initialMax = DateTime.now().add(const Duration(minutes: 5));
     }
@@ -295,19 +334,16 @@ class _MetalCandleChartState extends State<MetalCandleChart> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Top bar
+        // ── Top bar ───────────────────────────────────────────────────────
         Container(
           color: Colors.black,
           padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              // ✅ Uses _chartTitle getter
               Text(
-                widget.showCombined
-                    ? 'Live Both Holdings'
-                    : widget.selectedMetal == 'Gold'
-                    ? 'Live Gold Holdings'
-                    : 'Live Silver Holdings',
+                _chartTitle,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,
@@ -337,7 +373,7 @@ class _MetalCandleChartState extends State<MetalCandleChart> {
           ),
         ),
 
-        // Chart
+        // ── Chart ─────────────────────────────────────────────────────────
         Expanded(
           child: SfCartesianChart(
             backgroundColor: const Color(0xFF1a1a1a),
