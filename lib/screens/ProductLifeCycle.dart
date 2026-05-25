@@ -223,8 +223,8 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
           final productsForPortfolios =
               (_productLife?.productsForPortfolio[0] ?? []);
 
-          print("sdfsdfs ${productsForPortfolios}");
-          final metalType = productsForPortfolios['metal'];
+          final metalType = widget.metal;
+          print("sdfsdfs ${metalType}");
 
           // ✅ CHANGED — now supports Gold, Silver, Platinum, Palladium
           final double currentValue = _getCurrentValue(
@@ -256,7 +256,7 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
           }
 
           // ✅ NEW — chart title dynamically matches metal
-          String chartTitle() {
+          String chartTitle(String metalType) {
             switch (metalType) {
               case 'Gold':
                 return 'Gold Performance Chart';
@@ -447,7 +447,7 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
                             children: [
                               // ✅ CHANGED — dynamic chart title for all 4 metals
                               Text(
-                                chartTitle(),
+                                chartTitle(widget.metal),
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
