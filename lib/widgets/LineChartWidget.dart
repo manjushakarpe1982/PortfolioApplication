@@ -5,15 +5,17 @@ import 'package:bold_portfolio/widgets/PredictionPopup.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:intl/intl.dart'; // For DateFormat
-import '../models/portfolio_model.dart'; // Adjust the path accordingly
+import 'package:intl/intl.dart';
+import '../models/portfolio_model.dart';
 
 class MetalHoldingsLineChart extends StatelessWidget {
   final List<MetalInOunces> metalInOuncesData;
   final ValueChanged<bool> onToggleView;
   final bool isPredictionView;
-  final bool isGoldView; // Flag to distinguish between gold and silver
-  final bool isTotalHoldingsView; // Flag for total holdings
+  final bool isGoldView;
+  final bool isTotalHoldingsView;
+  final bool isPlatinumView;
+  final bool isPalladiumView;
   final String selectedTab;
 
   const MetalHoldingsLineChart({
@@ -21,12 +23,14 @@ class MetalHoldingsLineChart extends StatelessWidget {
     required this.metalInOuncesData,
     required this.onToggleView,
     required this.isPredictionView,
-    required this.isGoldView, // Flag to determine if it's gold or silver
-    required this.isTotalHoldingsView, // Flag to handle total holdings
-    required this.selectedTab, // Selected tab for dynamic label
+    required this.isGoldView,
+    required this.isTotalHoldingsView,
+    required this.isPlatinumView,
+    required this.isPalladiumView,
+    required this.selectedTab,
   });
 
-  // Helper function to build the legend circle
+  // ── Legend helpers ──────────────────────────────────────────────────────
   Widget _buildLegendDot({required Color color}) {
     return Container(
       width: 10,
@@ -35,7 +39,6 @@ class MetalHoldingsLineChart extends StatelessWidget {
     );
   }
 
-  // Helper function to build a legend item (dot + text)
   Widget _buildLegendItem(Color color, String text) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -50,123 +53,108 @@ class MetalHoldingsLineChart extends StatelessWidget {
     );
   }
 
+  // ── Value helpers ───────────────────────────────────────────────────────
   double getCurrentValue(MetalInOunces data) {
-    if (isTotalHoldingsView) {
-      return data.totalOunces;
-    } else if (isGoldView) {
-      return data.totalGoldOunces;
-    } else {
-      return data.totalSilverOunces;
-    }
+    if (isTotalHoldingsView) return data.totalOunces;
+    if (isGoldView) return data.totalGoldOunces;
+    if (isPlatinumView) return data.totalPlatinumOunces;
+    if (isPalladiumView) return data.totalPalladiumOunces;
+    return data.totalSilverOunces;
   }
 
   double getPredictionMax(MetalInOunces data) {
     if (isPredictionView) {
-      if (isTotalHoldingsView) {
-        return data.totalOunces;
-      } else if (isGoldView) {
-        final totalSilver = data.totalGoldOunces;
-        final totalSilverWorst = data.totalGoldWorstPrediction;
-        final totalSilverOptimal = data.totalGoldOptimalPrediction;
-        final maxGold = max(
-          totalSilver,
-          max(totalSilverWorst, totalSilverOptimal),
+      if (isTotalHoldingsView) return data.totalOunces;
+      if (isGoldView) {
+        return max(
+          data.totalGoldOunces,
+          max(data.totalGoldWorstPrediction, data.totalGoldOptimalPrediction),
         );
-        return maxGold;
-      } else {
-        final totalSilver = data.totalSilverOunces;
-        final totalSilverWorst = data.totalSilverWorstPrediction;
-        final totalSilverOptimal = data.totalSilverOptimalPrediction;
-        final maxSilver = max(
-          totalSilver,
-          max(totalSilverWorst, totalSilverOptimal),
+      }
+      if (isPlatinumView) {
+        return max(
+          data.totalPlatinumOunces,
+          max(
+            data.totalPlatinumWorstPrediction,
+            data.totalPlatinumOptimalPrediction,
+          ),
         );
-        return maxSilver;
       }
-    } else {
-      if (isTotalHoldingsView) {
-        return data.totalOunces;
-      } else if (isGoldView) {
-        return data.totalGoldOunces;
-      } else {
-        return data.totalSilverOunces;
+      if (isPalladiumView) {
+        return max(
+          data.totalPalladiumOunces,
+          max(
+            data.totalPalladiumWorstPrediction,
+            data.totalPalladiumOptimalPrediction,
+          ),
+        );
       }
+      return max(
+        data.totalSilverOunces,
+        max(data.totalSilverWorstPrediction, data.totalSilverOptimalPrediction),
+      );
     }
+    return getCurrentValue(data);
   }
 
   double getPredictionMin(MetalInOunces data) {
     if (isPredictionView) {
-      if (isTotalHoldingsView) {
-        return data.totalOunces;
-      } else if (isGoldView) {
-        final totalSilver = data.totalGoldOunces;
-        final totalSilverWorst = data.totalGoldWorstPrediction > 0
+      if (isTotalHoldingsView) return data.totalOunces;
+
+      if (isGoldView) {
+        final worst = data.totalGoldWorstPrediction > 0
             ? data.totalGoldWorstPrediction
-            : totalSilver;
-        final totalSilverOptimal = data.totalGoldOptimalPrediction > 0
+            : data.totalGoldOunces;
+        final optimal = data.totalGoldOptimalPrediction > 0
             ? data.totalGoldOptimalPrediction
-            : totalSilver;
-        final maxGold = min(
-          totalSilver,
-          min(totalSilverWorst, totalSilverOptimal),
-        );
-        return maxGold;
-      } else {
-        final totalSilver = data.totalSilverOunces;
-        final totalSilverWorst = data.totalSilverWorstPrediction;
-        final totalSilverOptimal = data.totalSilverOptimalPrediction;
-        final maxSilver = min(
-          totalSilver,
-          min(totalSilverWorst, totalSilverOptimal),
-        );
-        return maxSilver;
+            : data.totalGoldOunces;
+        return min(data.totalGoldOunces, min(worst, optimal));
       }
-    } else {
-      if (isTotalHoldingsView) {
-        return data.totalOunces;
-      } else if (isGoldView) {
-        return data.totalGoldOunces;
-      } else {
-        return data.totalSilverOunces;
+
+      if (isPlatinumView) {
+        final worst = data.totalPlatinumWorstPrediction > 0
+            ? data.totalPlatinumWorstPrediction
+            : data.totalPlatinumOunces;
+        final optimal = data.totalPlatinumOptimalPrediction > 0
+            ? data.totalPlatinumOptimalPrediction
+            : data.totalPlatinumOunces;
+        return min(data.totalPlatinumOunces, min(worst, optimal));
       }
+
+      if (isPalladiumView) {
+        final worst = data.totalPalladiumWorstPrediction > 0
+            ? data.totalPalladiumWorstPrediction
+            : data.totalPalladiumOunces;
+        final optimal = data.totalPalladiumOptimalPrediction > 0
+            ? data.totalPalladiumOptimalPrediction
+            : data.totalPalladiumOunces;
+        return min(data.totalPalladiumOunces, min(worst, optimal));
+      }
+
+      return min(
+        data.totalSilverOunces,
+        min(data.totalSilverWorstPrediction, data.totalSilverOptimalPrediction),
+      );
     }
+    return getCurrentValue(data);
   }
 
   double getMinY(
     List<MetalInOunces> actualData,
     List<MetalInOunces> predictionData,
   ) {
-    final List<double> allValues;
-    final actualDataValue = [
-      ...actualData
-          .where((d) => getCurrentValue(d) <= 0)
-          .map((d) => getCurrentValue(d)),
-    ];
-    // final predictionDataValue = [
-    //   ...predictionData.map((d) => getPredictionMin(d) ),
-    // ];
-    if (isPredictionView) {
-      allValues = [
-        ...actualData
-            .where((d) => getCurrentValue(d) >= 0)
-            .map((d) => getCurrentValue(d)),
-
-        // ...actualData.map((d) => getCurrentValue(d)),
-        ...predictionData.map((d) => getPredictionMin(d)),
-      ];
-      // allValues = [
-      //   ...actualData.map((d) => getCurrentValue(d)),
-      //   ...predictionData.map((d) => getPredictionMin(d)),
-      // ].where((value) => value > 0).toList(); // Filter only positive values
-    } else {
-      allValues = [
-        ...actualData
-            .where((d) => getCurrentValue(d) >= 0)
-            .map((d) => getCurrentValue(d)),
-      ];
-    }
-
-    // Filter only positive values
+    final List<double> allValues = isPredictionView
+        ? [
+            ...actualData
+                .where((d) => getCurrentValue(d) >= 0)
+                .map(getCurrentValue),
+            ...predictionData.map((d) => getPredictionMin(d)),
+          ]
+        : [
+            ...actualData
+                .where((d) => getCurrentValue(d) >= 0)
+                .map(getCurrentValue),
+          ];
 
     final minValue = allValues.reduce(min);
     return minValue - 1;
@@ -176,21 +164,42 @@ class MetalHoldingsLineChart extends StatelessWidget {
     List<MetalInOunces> actualData,
     List<MetalInOunces> predictionData,
   ) {
-    final List<double> allValues;
-    if (isPredictionView) {
-      allValues = [
-        ...actualData.map((d) => getCurrentValue(d)),
-        ...predictionData.map((d) => getPredictionMax(d)),
-      ];
-    } else {
-      allValues = [...actualData.map((d) => getCurrentValue(d))];
-    }
+    final List<double> allValues = isPredictionView
+        ? [
+            ...actualData.map(getCurrentValue),
+            ...predictionData.map((d) => getPredictionMax(d)),
+          ]
+        : [...actualData.map(getCurrentValue)];
     return allValues.reduce(max) + 1;
+  }
+
+  // ── Worst prediction value ──────────────────────────────────────────────
+  double getWorstPrediction(MetalInOunces data) {
+    if (isGoldView) return data.totalGoldWorstPrediction;
+    if (isPlatinumView) return data.totalPlatinumWorstPrediction;
+    if (isPalladiumView) return data.totalPalladiumWorstPrediction;
+    return data.totalSilverWorstPrediction;
+  }
+
+  // ── Optimal prediction value ────────────────────────────────────────────
+  double getOptimalPrediction(MetalInOunces data) {
+    if (isGoldView) return data.totalGoldOptimalPrediction;
+    if (isPlatinumView) return data.totalPlatinumOptimalPrediction;
+    if (isPalladiumView) return data.totalPalladiumOptimalPrediction;
+    return data.totalSilverOptimalPrediction;
+  }
+
+  // ── Metal label helper ──────────────────────────────────────────────────
+  String get metalLabel {
+    if (isGoldView) return 'Gold';
+    if (isPlatinumView) return 'Platinum';
+    if (isPalladiumView) return 'Palladium';
+    return 'Silver';
   }
 
   @override
   Widget build(BuildContext context) {
-    // Filter data based on 'type'
+    // ── Filter actual vs prediction ─────────────────────────────────────
     final List<MetalInOunces> actualData = metalInOuncesData
         .where((data) => data.type == 'Actual')
         .toList();
@@ -198,27 +207,33 @@ class MetalHoldingsLineChart extends StatelessWidget {
         .where((data) => data.type == 'Prediction')
         .toList();
 
-    // Create a new list for prediction data that connects to the actual data.
     final MetalInOunces lastActualPoint = actualData.last;
-
-    // 2. Create the connected list: [last historical point, ...all prediction points]
-    // This assumes predictionData does NOT already contain the last actual point.
-    List<MetalInOunces> connectedPredictionData = [
+    final List<MetalInOunces> connectedPredictionData = [
       lastActualPoint,
       ...predictionData,
     ];
 
-    Color predictionLineColor = const Color(
-      0xFF97FF00,
-    ); // Green for predictions
-    Color actualLineColor = isGoldView
-        ? Colors.orangeAccent
-        : const Color(0xFF808080); // Gray for actual data
-    Color totalLineColor = const Color(0xFF0000FF); // Blue for total holdings
+    // ── Colors ──────────────────────────────────────────────────────────
+    Color actualLineColor;
+    if (isGoldView) {
+      actualLineColor = Colors.orangeAccent;
+    } else if (isPlatinumView) {
+      actualLineColor = const Color(0xFF93C5FD);
+    } else if (isPalladiumView) {
+      actualLineColor = const Color(0xFF2DD4BF);
+    } else {
+      actualLineColor = const Color(0xFF808080);
+    }
 
-    String labelText = '';
-    Color labelColor = Colors.white;
+    const Color predictionLineColor = Color(0xFF97FF00);
+    const Color totalLineColor = Color(0xFF0000FF);
+    final Color lineColor = isTotalHoldingsView
+        ? totalLineColor
+        : actualLineColor;
 
+    // ── Labels ──────────────────────────────────────────────────────────
+    String labelText;
+    Color labelColor;
     switch (selectedTab) {
       case 'Gold Holdings':
         labelText = 'Gold';
@@ -232,58 +247,78 @@ class MetalHoldingsLineChart extends StatelessWidget {
         labelText = 'Silver & Gold';
         labelColor = const Color(0xFF0000FF);
         break;
+      case 'Platinum Holdings':
+        labelText = 'Platinum';
+        labelColor = const Color(0xFF93C5FD);
+        break;
+      case 'Palladium Holdings':
+        labelText = 'Palladium';
+        labelColor = const Color(0xFF2DD4BF);
+        break;
       default:
         labelText = '';
         labelColor = Colors.white;
     }
 
+    // ── Series name ──────────────────────────────────────────────────────
+    String seriesName;
+    if (isTotalHoldingsView) {
+      seriesName = 'Total Holdings';
+    } else if (isGoldView) {
+      seriesName = 'Gold Holdings';
+    } else if (isPlatinumView) {
+      seriesName = 'Platinum Holdings';
+    } else if (isPalladiumView) {
+      seriesName = 'Palladium Holdings';
+    } else {
+      seriesName = 'Silver Holdings';
+    }
+
+    // ── Chart title ──────────────────────────────────────────────────────
+    String chartTitle;
+    if (isTotalHoldingsView) {
+      chartTitle = 'Total Holdings';
+    } else if (isGoldView) {
+      chartTitle = 'Gold Holdings';
+    } else if (isPlatinumView) {
+      chartTitle = 'Platinum Holdings';
+    } else if (isPalladiumView) {
+      chartTitle = 'Palladium Holdings';
+    } else {
+      chartTitle = 'Silver Holdings';
+    }
+
+    // ── Formatters ───────────────────────────────────────────────────────
     String formatValue(num value) {
       final absValue = value.abs();
-
-      if (absValue >= 1e9) {
-        return '${(value / 1e9).toStringAsFixed(1)}B';
-      } else if (absValue >= 1e6) {
-        return '${(value / 1e6).toStringAsFixed(1)}M';
-      } else if (absValue >= 1e3) {
-        return '${(value / 1e3).toStringAsFixed(1)}K';
-      } else {
-        return '${value.toStringAsFixed(0)}';
-      }
+      if (absValue >= 1e9) return '${(value / 1e9).toStringAsFixed(1)}B';
+      if (absValue >= 1e6) return '${(value / 1e6).toStringAsFixed(1)}M';
+      if (absValue >= 1e3) return '${(value / 1e3).toStringAsFixed(1)}K';
+      return value.toStringAsFixed(0);
     }
 
     String formatPrice(num price) {
-      final format = NumberFormat.simpleCurrency(locale: 'en_US');
-      return format.format(price);
+      return NumberFormat.simpleCurrency(locale: 'en_US').format(price);
     }
 
-    // Calculate dynamic min and max for Y-axis based on selected metal (gold or silver)
+    // ── Combined data ────────────────────────────────────────────────────
     final List<MetalInOunces> combinedData = isPredictionView
         ? [...actualData, ...predictionData]
         : actualData;
 
+    // ── Prediction render flags ──────────────────────────────────────────
     final bool shouldRenderWorstPrediction = combinedData.any((item) {
-      num? value;
-      if (item.type == 'Prediction') {
-        if (isGoldView) {
-          value = item.totalGoldWorstPrediction;
-        } else {
-          value = item.totalSilverWorstPrediction;
-        }
-      }
-      return value != null && value != 0 && value > 0;
+      if (item.type != 'Prediction') return false;
+      return getWorstPrediction(item) > 0;
     });
 
     final bool shouldRenderOptimalPrediction = combinedData.any((item) {
-      num? value;
-      if (item.type == 'Prediction') {
-        if (isGoldView) {
-          value = item.totalGoldOptimalPrediction;
-        } else {
-          value = item.totalSilverOptimalPrediction;
-        }
-      }
-      return value != null && value != 0 && value > 0;
+      if (item.type != 'Prediction') return false;
+      return getOptimalPrediction(item) > 0;
     });
+
+    // ✅ All metals now support prediction toggle
+    final bool showPredictionToggle = !isTotalHoldingsView;
 
     return Card(
       elevation: 4,
@@ -292,26 +327,23 @@ class MetalHoldingsLineChart extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: Column(
           children: [
+            // ── Header row ───────────────────────────────────────────────
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  isTotalHoldingsView
-                      ? 'Total Holdings'
-                      : isGoldView
-                      ? 'Gold Holdings'
-                      : 'Silver Holdings',
+                  chartTitle,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Switch(
-                  value: isPredictionView,
-                  onChanged: onToggleView,
-                  activeThumbColor: Colors.blue,
-                ),
-                if (!isTotalHoldingsView)
+                if (showPredictionToggle) ...[
+                  Switch(
+                    value: isPredictionView,
+                    onChanged: onToggleView,
+                    activeThumbColor: Colors.blue,
+                  ),
                   Expanded(
                     child: TextButton(
                       onPressed: () {
@@ -326,10 +358,9 @@ class MetalHoldingsLineChart extends StatelessWidget {
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
-                      child: Wrap(
-                        alignment: WrapAlignment
-                            .center, // Center the text within the Wrap
-                        children: const [
+                      child: const Wrap(
+                        alignment: WrapAlignment.center,
+                        children: [
                           Text(
                             'Add',
                             style: TextStyle(
@@ -348,26 +379,26 @@ class MetalHoldingsLineChart extends StatelessWidget {
                       ),
                     ),
                   ),
+                ],
               ],
             ),
 
-            // Comprehensive legend for prediction view
+            // ── Legend ───────────────────────────────────────────────────
             if (isPredictionView && !isTotalHoldingsView)
               Wrap(
                 spacing: 12.0,
                 runSpacing: 8.0,
                 alignment: WrapAlignment.center,
                 children: [
-                  _buildLegendItem(const Color(0xFF808080), 'Silver'),
-                  if (isPredictionView)
-                    _buildLegendItem(
-                      predictionLineColor,
-                      'Market Analyst Prediction',
-                    ),
+                  _buildLegendItem(actualLineColor, metalLabel),
+                  _buildLegendItem(
+                    predictionLineColor,
+                    'Market Analyst Prediction',
+                  ),
                   if (shouldRenderWorstPrediction)
-                    _buildLegendItem(Colors.red, 'Silver Worst'),
+                    _buildLegendItem(Colors.red, '$metalLabel Worst'),
                   if (shouldRenderOptimalPrediction)
-                    _buildLegendItem(Colors.blue, 'Silver Optimal'),
+                    _buildLegendItem(Colors.blue, '$metalLabel Optimal'),
                 ],
               )
             else
@@ -378,15 +409,17 @@ class MetalHoldingsLineChart extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     labelText,
-                    style: TextStyle(fontWeight: FontWeight.w500),
+                    style: const TextStyle(fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
 
             const SizedBox(height: 16),
+
+            // ── Chart ────────────────────────────────────────────────────
             Expanded(
               child: combinedData.isEmpty
-                  ? Center(
+                  ? const Center(
                       child: Text(
                         'No data available',
                         style: TextStyle(fontSize: 16, color: Colors.grey),
@@ -395,7 +428,6 @@ class MetalHoldingsLineChart extends StatelessWidget {
                   : SfCartesianChart(
                       backgroundColor: Colors.transparent,
                       plotAreaBorderWidth: 1.0,
-
                       tooltipBehavior: TooltipBehavior(enable: false),
                       trackballBehavior: TrackballBehavior(
                         enable: true,
@@ -412,27 +444,23 @@ class MetalHoldingsLineChart extends StatelessWidget {
                           final groupingInfo = details.groupingModeInfo;
                           if (groupingInfo == null) return const SizedBox();
 
-                          final List<dynamic>? visibleSeriesList =
+                          final visibleSeriesList =
                               groupingInfo.visibleSeriesList;
-                          final List<CartesianChartPoint<dynamic>> points =
-                              groupingInfo.points;
+                          final points = groupingInfo.points;
 
                           if (visibleSeriesList == null ||
                               visibleSeriesList.length != points.length) {
                             return const SizedBox();
                           }
 
-                          // Map of seriesName -> dataPoint
                           final Map<String, MetalInOunces> seriesToData = {};
-
                           for (int i = 0; i < visibleSeriesList.length; i++) {
                             final seriesObj = visibleSeriesList[i];
                             final point = points[i];
-                            final String? seriesName =
-                                seriesObj.name as String?;
+                            final String? sName = seriesObj.name as String?;
                             final List<dynamic>? ds = seriesObj.dataSource;
 
-                            if (seriesName != null &&
+                            if (sName != null &&
                                 ds != null &&
                                 point.x != null) {
                               MetalInOunces? dp;
@@ -445,19 +473,16 @@ class MetalHoldingsLineChart extends StatelessWidget {
                                     ? ds.first as MetalInOunces
                                     : null;
                               }
-
-                              if (dp != null) {
-                                seriesToData[seriesName] = dp;
-                              }
+                              if (dp != null) seriesToData[sName] = dp;
                             }
                           }
 
                           if (seriesToData.isEmpty) return const SizedBox();
+
                           final provider = Provider.of<PortfolioProvider>(
                             context,
                             listen: false,
                           );
-
                           final MetalInOunces firstDp =
                               seriesToData.values.first;
                           final String date = provider.frequency == '1D'
@@ -483,56 +508,67 @@ class MetalHoldingsLineChart extends StatelessWidget {
                             color: Colors.white,
                             fontSize: 12,
                           );
-                          seriesToData.forEach((seriesName, dp) {
-                            if (seriesName == 'Silver Holdings') {
+
+                          seriesToData.forEach((sName, dp) {
+                            if (sName == 'Silver Holdings') {
                               content.add(
                                 Text(
                                   "Silver: ${formatPrice(dp.totalSilverOunces)}",
                                   style: baseStyle,
                                 ),
                               );
-                            } else if (seriesName == 'Gold Holdings') {
+                            } else if (sName == 'Gold Holdings') {
                               content.add(
                                 Text(
                                   "Gold: ${formatPrice(dp.totalGoldOunces)}",
                                   style: baseStyle,
                                 ),
                               );
-                            } else if (seriesName == 'Total Holdings') {
+                            } else if (sName == 'Total Holdings') {
                               content.add(
                                 Text(
                                   "Total: ${formatPrice(dp.totalOunces)}",
                                   style: baseStyle,
                                 ),
                               );
-                            } else if (seriesName == 'Market Prediction') {
+                            } else if (sName == 'Platinum Holdings') {
                               content.add(
                                 Text(
-                                  "Market Prediction: \$${(isTotalHoldingsView
-                                      ? dp.totalOunces
-                                      : isGoldView
-                                      ? dp.totalGoldOunces
-                                      : dp.totalSilverOunces)}",
+                                  "Platinum: ${formatPrice(dp.totalPlatinumOunces)}",
+                                  style: baseStyle,
+                                ),
+                              );
+                            } else if (sName == 'Palladium Holdings') {
+                              content.add(
+                                Text(
+                                  "Palladium: ${formatPrice(dp.totalPalladiumOunces)}",
+                                  style: baseStyle,
+                                ),
+                              );
+                            } else if (sName == 'Market Prediction') {
+                              content.add(
+                                Text(
+                                  "Market Prediction: \$${getCurrentValue(dp)}",
                                   style: const TextStyle(
                                     color: Colors.lightGreen,
                                     fontSize: 12,
                                   ),
                                 ),
                               );
-                            } else if (seriesName == 'Worst Prediction') {
+                            } else if (sName == 'Worst Prediction') {
                               content.add(
                                 Text(
-                                  "${isGoldView ? 'Gold' : 'Silver'} Worst: \$${isGoldView ? dp.totalGoldWorstPrediction : dp.totalSilverWorstPrediction}",
+                                  "$metalLabel Worst: \$${getWorstPrediction(dp)}",
                                   style: const TextStyle(
                                     color: Colors.red,
                                     fontSize: 12,
                                   ),
                                 ),
                               );
-                            } else if (seriesName == 'Optimal Prediction') {
+                            } else if (sName == 'Optimal Prediction') {
                               content.add(
                                 Text(
-                                  "${isGoldView ? 'Gold' : 'Silver'} Optimal: \$${(isGoldView ? dp.totalGoldOptimalPrediction : dp.totalSilverOptimalPrediction)}",
+                                  "$metalLabel Optimal: \$${getOptimalPrediction(dp)}",
                                   style: const TextStyle(
                                     color: Colors.blue,
                                     fontSize: 12,
@@ -541,29 +577,7 @@ class MetalHoldingsLineChart extends StatelessWidget {
                               );
                             }
                           });
-                          final minValue = [
-                            ...combinedData.map(
-                              (d) => isTotalHoldingsView
-                                  ? d.totalOunces
-                                  : isGoldView
-                                  ? d.totalGoldOunces
-                                  : d.totalSilverOunces,
-                            ),
-                            ...predictionData.map(
-                              (d) => isTotalHoldingsView
-                                  ? d.totalOunces
-                                  : isGoldView
-                                  ? d.totalGoldWorstPrediction
-                                  : d.totalSilverWorstPrediction,
-                            ),
-                          ].reduce((a, b) => a < b ? a : b);
 
-                          // ✅ Only subtract 1 if result stays positive
-                          final adjustedMin = (minValue - 1) < 0
-                              ? minValue
-                              : minValue - 1;
-
-                          // Final tooltip container
                           return Container(
                             padding: const EdgeInsets.symmetric(
                               vertical: 6,
@@ -584,95 +598,54 @@ class MetalHoldingsLineChart extends StatelessWidget {
                           );
                         },
                       ),
-                      // Vertical dotted line. Ensure your syncfusion_flutter_charts package is up-to-date for this to work.
-                      annotations: <CartesianChartAnnotation>[
-                        // if (isPredictionView && actualData.isNotEmpty)
-                        //   VerticalLineAnnotation(
-                        //     x1: actualData.last.orderDate,
-                        //     text: '',
-                        //     lineDashArray: <double>[5, 5], // Dotted line
-                        //     borderColor: Colors.grey.shade700,
-                        //     borderWidth: 1,
-                        //   )
-                      ],
-
+                      annotations: const <CartesianChartAnnotation>[],
                       primaryXAxis: DateTimeAxis(
                         dateFormat: DateFormat.MMMd(),
                         intervalType: DateTimeIntervalType.auto,
                         majorGridLines: const MajorGridLines(width: 0),
                         edgeLabelPlacement: EdgeLabelPlacement.shift,
                       ),
-
-                      // primaryYAxis: NumericAxis(
-                      //   numberFormat: NumberFormat.simpleCurrency(decimalDigits: 0),
-                      //   majorGridLines: const MajorGridLines(width: 0.5),
-                      // ),
                       primaryYAxis: NumericAxis(
                         axisLabelFormatter: (AxisLabelRenderDetails details) {
                           return ChartAxisLabel(
                             '\$${formatValue(details.value)}',
-                            const TextStyle(
-                              color: Colors.black,
-                            ), // customize style as needed
+                            const TextStyle(color: Colors.black),
                           );
                         },
                         majorGridLines: const MajorGridLines(width: 0.5),
-                        // Set the minimum value using the getMinY function
                         minimum: getMinY(actualData, predictionData),
-                        // Set the maximum value using the getMaxY function
                         maximum: getMaxY(actualData, predictionData),
                       ),
                       series: <CartesianSeries<MetalInOunces, DateTime>>[
-                        // Actual Silver
+                        // ── Main actual area series ───────────────────────
                         AreaSeries<MetalInOunces, DateTime>(
                           key: ValueKey(selectedTab),
                           dataSource: actualData,
                           xValueMapper: (MetalInOunces data, _) =>
                               data.orderDate,
                           yValueMapper: (MetalInOunces data, _) =>
-                              isTotalHoldingsView
-                              ? data.totalOunces
-                              : isGoldView
-                              ? data.totalGoldOunces
-                              : data.totalSilverOunces,
-                          color: (isTotalHoldingsView
-                              ? totalLineColor
-                              : actualLineColor),
+                              getCurrentValue(data),
+                          color: lineColor,
                           borderWidth: 2,
                           gradient: LinearGradient(
                             colors: [
-                              (isTotalHoldingsView
-                                      ? totalLineColor
-                                      : actualLineColor)
-                                  .withOpacity(0.7),
-                              (isTotalHoldingsView
-                                      ? totalLineColor
-                                      : actualLineColor)
-                                  .withOpacity(0.1),
+                              lineColor.withOpacity(0.7),
+                              lineColor.withOpacity(0.1),
                             ],
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             tileMode: TileMode.clamp,
                           ),
-                          name: isGoldView
-                              ? 'Gold Holdings'
-                              : isTotalHoldingsView
-                              ? 'Total Holdings'
-                              : 'Silver Holdings',
+                          name: seriesName,
                         ),
 
-                        if (isPredictionView) ...[
-                          // Green Area Fill (Market to Worst)
+                        // ── Prediction series ─────────────────────────────
+                        if (isPredictionView && showPredictionToggle) ...[
                           AreaSeries<MetalInOunces, DateTime>(
                             key: ValueKey('${selectedTab}_prediction'),
                             dataSource: connectedPredictionData,
                             xValueMapper: (d, _) => d.orderDate,
-                            yValueMapper: (d, _) => isTotalHoldingsView
-                                ? d.totalOunces
-                                : isGoldView
-                                ? d.totalGoldOunces
-                                : d.totalSilverOunces,
-                            // lowValueMapper: (d, _) => d.totalSilverWorstPrediction,
+                            yValueMapper: (d, _) => getCurrentValue(d),
                             color: predictionLineColor.withOpacity(0.4),
                             gradient: LinearGradient(
                               colors: [
@@ -683,35 +656,28 @@ class MetalHoldingsLineChart extends StatelessWidget {
                               end: Alignment.bottomCenter,
                               tileMode: TileMode.clamp,
                             ),
-                            borderWidth: 0, // No border on the fill itself
+                            borderWidth: 0,
                           ),
                           LineSeries<MetalInOunces, DateTime>(
                             key: ValueKey('${selectedTab}_linepredictions'),
                             dataSource: connectedPredictionData,
                             xValueMapper: (d, _) => d.orderDate,
-                            yValueMapper: (d, _) => isTotalHoldingsView
-                                ? d.totalOunces
-                                : isGoldView
-                                ? d.totalGoldOunces
-                                : d.totalSilverOunces,
+                            yValueMapper: (d, _) => getCurrentValue(d),
                             color: predictionLineColor,
                             width: 1.5,
                             name: 'Market Prediction',
                           ),
                         ],
 
+                        // ── Worst prediction series ───────────────────────
                         if (shouldRenderWorstPrediction &&
                             isPredictionView &&
-                            !isTotalHoldingsView) ...[
-                          // Red Area Fill (Optimal to Market)
+                            showPredictionToggle) ...[
                           AreaSeries<MetalInOunces, DateTime>(
                             key: ValueKey('${selectedTab}_worstPrediction'),
                             dataSource: connectedPredictionData,
                             xValueMapper: (d, _) => d.orderDate,
-                            yValueMapper: (d, _) => isGoldView
-                                ? d.totalGoldWorstPrediction
-                                : d.totalSilverWorstPrediction,
-                            // lowValueMapper: (d, _) => d.totalSilverOunces,
+                            yValueMapper: (d, _) => getWorstPrediction(d),
                             gradient: LinearGradient(
                               colors: [
                                 Colors.red.withOpacity(0.7),
@@ -721,31 +687,28 @@ class MetalHoldingsLineChart extends StatelessWidget {
                               end: Alignment.bottomCenter,
                               tileMode: TileMode.clamp,
                             ),
-                            borderWidth: 0, // No border on the fill itself
+                            borderWidth: 0,
                           ),
                           LineSeries<MetalInOunces, DateTime>(
                             key: ValueKey('${selectedTab}_lineworstPrediction'),
                             dataSource: connectedPredictionData,
                             xValueMapper: (d, _) => d.orderDate,
-                            yValueMapper: (d, _) => isGoldView
-                                ? d.totalGoldWorstPrediction
-                                : d.totalSilverWorstPrediction,
+                            yValueMapper: (d, _) => getWorstPrediction(d),
                             color: Colors.red,
                             width: 1.5,
                             name: 'Worst Prediction',
                           ),
                         ],
+
+                        // ── Optimal prediction series ─────────────────────
                         if (shouldRenderOptimalPrediction &&
                             isPredictionView &&
-                            !isTotalHoldingsView) ...[
+                            showPredictionToggle) ...[
                           AreaSeries<MetalInOunces, DateTime>(
                             key: ValueKey('${selectedTab}_Optimalprediction'),
                             dataSource: connectedPredictionData,
                             xValueMapper: (d, _) => d.orderDate,
-                            yValueMapper: (d, _) => isGoldView
-                                ? d.totalGoldOptimalPrediction
-                                : d.totalSilverOptimalPrediction,
-                            // lowValueMapper: (d, _) => d.totalSilverOunces,
+                            yValueMapper: (d, _) => getOptimalPrediction(d),
                             gradient: LinearGradient(
                               colors: [
                                 Colors.blue.withOpacity(0.7),
@@ -755,7 +718,7 @@ class MetalHoldingsLineChart extends StatelessWidget {
                               end: Alignment.bottomCenter,
                               tileMode: TileMode.clamp,
                             ),
-                            borderWidth: 0, // No border on the fill itself
+                            borderWidth: 0,
                           ),
                           LineSeries<MetalInOunces, DateTime>(
                             key: ValueKey(
@@ -763,9 +726,7 @@ class MetalHoldingsLineChart extends StatelessWidget {
                             ),
                             dataSource: connectedPredictionData,
                             xValueMapper: (d, _) => d.orderDate,
-                            yValueMapper: (d, _) => isGoldView
-                                ? d.totalGoldOptimalPrediction
-                                : d.totalSilverOptimalPrediction,
+                            yValueMapper: (d, _) => getOptimalPrediction(d),
                             color: Colors.blue,
                             width: 1.5,
                             name: 'Optimal Prediction',

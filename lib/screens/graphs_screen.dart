@@ -31,6 +31,8 @@ class _GraphsScreenState extends State<GraphsScreen> {
   bool showGoldPrediction = false; // This can be dynamic based on your data
   bool showSilverPrediction = false;
   bool showTotalPrediction = false;
+  bool showPlatinumPrediction = false;
+  bool showPalladiumPrediction = false;
 
   // Determine the value of _isPredictionView
   bool _isPredictionView = false;
@@ -52,6 +54,8 @@ class _GraphsScreenState extends State<GraphsScreen> {
     'Total Holdings',
     'Gold Holdings',
     'Silver Holdings',
+    'Platinum Holdings',
+    'Palladium Holdings',
   ];
 
   // Method to fetch the portfolio data when the frequency changes
@@ -121,6 +125,12 @@ class _GraphsScreenState extends State<GraphsScreen> {
           ? false
           : true, // Set to false when toggle is on
       "showSilverPrediction": value
+          ? false
+          : true, // Set to false when toggle is on
+      "showTotalPrediction": value
+          ? false
+          : true, // Set to false when toggle is on
+      "showPlatinumPrediction": value
           ? false
           : true, // Set to false when toggle is on
     };
@@ -222,6 +232,8 @@ class _GraphsScreenState extends State<GraphsScreen> {
           showGoldPrediction = portfolioSettings.showGoldPrediction;
           showSilverPrediction = portfolioSettings.showSilverPrediction;
           showTotalPrediction = portfolioSettings.showPrediction;
+          showPlatinumPrediction = portfolioSettings.showPlatinumPrediction;
+          showPalladiumPrediction = portfolioSettings.showPalladiumPrediction;
 
           if (selectedTab == 'Gold Holdings') {
             _isPredictionView = !showGoldPrediction;
@@ -229,6 +241,10 @@ class _GraphsScreenState extends State<GraphsScreen> {
             _isPredictionView = !showSilverPrediction;
           } else if (selectedTab == 'Total Holdings') {
             _isPredictionView = !showTotalPrediction;
+          } else if (selectedTab == 'Platinum Holdings') {
+            _isPredictionView = !showPlatinumPrediction;
+          } else if (selectedTab == 'Palladium Holdings') {
+            _isPredictionView = !showPalladiumPrediction;
           }
 
           detectMetalData(metalCandleChartData);
@@ -417,6 +433,8 @@ class _GraphsScreenState extends State<GraphsScreen> {
                           )
                         : (selectedTab == 'Silver Holdings' ||
                               selectedTab == 'Gold Holdings' ||
+                              selectedTab == 'Platinum Holdings' ||
+                              selectedTab == 'Palladium Holdings' ||
                               selectedTab == 'Total Holdings')
                         ? _isLoading
                               ? Center(
@@ -429,6 +447,10 @@ class _GraphsScreenState extends State<GraphsScreen> {
                                   isGoldView: selectedTab == 'Gold Holdings',
                                   isTotalHoldingsView:
                                       selectedTab == 'Total Holdings',
+                                  isPlatinumView:
+                                      selectedTab == 'Platinum Holdings',
+                                  isPalladiumView:
+                                      selectedTab == 'Palladium Holdings',
                                   selectedTab: selectedTab,
                                 )
                         : Text(

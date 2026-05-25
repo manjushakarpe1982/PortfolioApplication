@@ -251,6 +251,8 @@ class PortfolioSettings {
   final bool showSilverPrediction;
   final bool showTotalPrediction;
   final bool showMetalPrice;
+  final bool showPlatinumPrediction;
+  final bool showPalladiumPrediction;
 
   PortfolioSettings({
     required this.customerId,
@@ -262,6 +264,8 @@ class PortfolioSettings {
     required this.showSilverPrediction,
     required this.showTotalPrediction,
     required this.showMetalPrice,
+    required this.showPlatinumPrediction,
+    required this.showPalladiumPrediction,
   });
 
   factory PortfolioSettings.fromJson(Map<String, dynamic> json) {
@@ -275,6 +279,8 @@ class PortfolioSettings {
       showSilverPrediction: json['showSilverPrediction'] ?? false,
       showTotalPrediction: json['showTotalPrediction'] ?? false,
       showMetalPrice: json['showMetalPrice'] ?? false,
+      showPlatinumPrediction: json['showPlatinumPrediction'] ?? false,
+      showPalladiumPrediction: json['showPalladiumPrediction'] ?? false,
     );
   }
 
@@ -290,6 +296,8 @@ class PortfolioSettings {
       showSilverPrediction: false,
       showTotalPrediction: false,
       showMetalPrice: false,
+      showPlatinumPrediction: false,
+      showPalladiumPrediction: false,
     );
   }
 }
@@ -396,6 +404,12 @@ class MetalInOunces {
   final String type;
   final double totalOuncesWorstPrediction;
   final double totalOuncesOptimalPrediction;
+  final double totalPlatinumOunces;
+  final double totalPalladiumOunces;
+  final double totalPlatinumWorstPrediction;
+  final double totalPlatinumOptimalPrediction;
+  final double totalPalladiumWorstPrediction;
+  final double totalPalladiumOptimalPrediction;
 
   MetalInOunces(
     this.orderDate,
@@ -409,6 +423,12 @@ class MetalInOunces {
     this.type,
     this.totalOuncesWorstPrediction,
     this.totalOuncesOptimalPrediction,
+    this.totalPlatinumOunces,
+    this.totalPalladiumOunces,
+    this.totalPlatinumWorstPrediction,
+    this.totalPlatinumOptimalPrediction,
+    this.totalPalladiumWorstPrediction,
+    this.totalPalladiumOptimalPrediction,
   );
 
   factory MetalInOunces.fromJson(Map<String, dynamic> json) {
@@ -428,6 +448,12 @@ class MetalInOunces {
       (json['type'] ?? '').toString(),
       (json['totalOuncesWorstPrediction'] ?? 0).toDouble(),
       (json['totalOuncesOptimalPrediction'] ?? 0).toDouble(),
+      (json['totalPlatinumOunces'] ?? 0).toDouble(),
+      (json['totalPalladiumOunces'] ?? 0).toDouble(),
+      (json['totalPlatinumWorstPrediction'] ?? 0).toDouble(),
+      (json['totalPlatinumOptimalPrediction'] ?? 0).toDouble(),
+      (json['totalPalladiumWorstPrediction'] ?? 0).toDouble(),
+      (json['totalPalladiumOptimalPrediction'] ?? 0).toDouble(),
     );
   }
 }

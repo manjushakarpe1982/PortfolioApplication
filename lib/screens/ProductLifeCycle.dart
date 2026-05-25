@@ -35,7 +35,6 @@ class ProductLife {
               ?.map((e) => MetalInOunces.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
-
       productsForPortfolio: json['productsForPortfolio'] != null
           ? List<dynamic>.from(json['productsForPortfolio'])
           : [],
@@ -85,7 +84,6 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
       final data = await _fetchProductDetails('3M');
       setState(() {
         _productLife = data;
-
         _isLoading = false;
       });
     } catch (e) {
@@ -152,6 +150,38 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
     '5Y',
   ];
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  // ✅ NEW — maps metal name to its current/invested keys in the API response
+  double _getCurrentValue(String metalType, Map<String, dynamic> investment) {
+    switch (metalType) {
+      case 'Gold':
+        return (investment['totalGoldCurrent'] ?? 0).toDouble();
+      case 'Silver':
+        return (investment['totalSilverCurrent'] ?? 0).toDouble();
+      case 'Platinum':
+        return (investment['totalPlatinumCurrent'] ?? 0).toDouble();
+      case 'Palladium':
+        return (investment['totalPalladiumCurrent'] ?? 0).toDouble();
+      default:
+        return 0.0;
+    }
+  }
+
+  double _getTotalInvested(String metalType, Map<String, dynamic> investment) {
+    switch (metalType) {
+      case 'Gold':
+        return (investment['totalGoldInvested'] ?? 0).toDouble();
+      case 'Silver':
+        return (investment['totalSilverInvested'] ?? 0).toDouble();
+      case 'Platinum':
+        return (investment['totalPlatinumInvested'] ?? 0).toDouble();
+      case 'Palladium':
+        return (investment['totalPalladiumInvested'] ?? 0).toDouble();
+      default:
+        return 0.0;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final ScrollController scrollController = ScrollController();
@@ -188,18 +218,24 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
           final metalInOuncesData = _productLife?.metalInOunces ?? [];
           final currentInvestment =
               (_productLife?.investment.isNotEmpty ?? false)
-              ? _productLife!.investment[0] as Map<String, dynamic>
-              : {};
+              ? Map<String, dynamic>.from(_productLife!.investment[0] as Map)
+              : <String, dynamic>{};
           final productsForPortfolios =
               (_productLife?.productsForPortfolio[0] ?? []);
-          print("sdfsdfs ${productsForPortfolios} ");
+
+          print("sdfsdfs ${productsForPortfolios}");
           final metalType = productsForPortfolios['metal'];
-          final double currentValue = metalType == 'Gold'
-              ? (currentInvestment['totalGoldCurrent'] ?? 0).toDouble()
-              : (currentInvestment['totalSilverCurrent'] ?? 0).toDouble();
-          final double totalInvested = metalType == 'Gold'
-              ? (currentInvestment['totalGoldInvested'] ?? 0).toDouble()
-              : (currentInvestment['totalSilverInvested'] ?? 0).toDouble();
+
+          // ✅ CHANGED — now supports Gold, Silver, Platinum, Palladium
+          final double currentValue = _getCurrentValue(
+            metalType,
+            currentInvestment,
+          );
+          final double totalInvested = _getTotalInvested(
+            metalType,
+            currentInvestment,
+          );
+
           final double difference = currentValue - totalInvested;
           final bool isProfit = difference >= 0;
 
@@ -213,9 +249,42 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
           final sour = productsForPortfolios['sourceName'];
           print("sdfsdf $sour");
           final transactionProducts = (_productLife?.transactions ?? []);
+
           String formatPrice(num price) {
             final format = NumberFormat.simpleCurrency(locale: 'en_US');
             return format.format(price);
+          }
+
+          // ✅ NEW — chart title dynamically matches metal
+          String chartTitle() {
+            switch (metalType) {
+              case 'Gold':
+                return 'Gold Performance Chart';
+              case 'Silver':
+                return 'Silver Performance Chart';
+              case 'Platinum':
+                return 'Platinum Performance Chart';
+              case 'Palladium':
+                return 'Palladium Performance Chart';
+              default:
+                return 'Performance Chart';
+            }
+          }
+
+          // ✅ NEW — dot color per metal
+          Color metalColor() {
+            switch (metalType) {
+              case 'Gold':
+                return const Color(0xFFFFD700);
+              case 'Silver':
+                return const Color(0xFFC0C0C0);
+              case 'Platinum':
+                return const Color(0xFF93C5FD);
+              case 'Palladium':
+                return const Color(0xFF2DD4BF);
+              default:
+                return Colors.grey;
+            }
           }
 
           return SingleChildScrollView(
@@ -224,14 +293,12 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
               children: [
                 // Back Button
                 TextButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
+                  onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.arrow_back),
-                  label: Text(
+                  label: const Text(
                     'Back',
                     style: TextStyle(
-                      color: const Color.fromRGBO(0, 0, 0, 1),
+                      color: Color.fromRGBO(0, 0, 0, 1),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -273,12 +340,49 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      widget.title,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 20,
-                                      ),
+                                    // ✅ Metal badge next to title
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            widget.title,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 20,
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 3,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: metalColor().withOpacity(
+                                              0.15,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                            border: Border.all(
+                                              color: metalColor(),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            metalType ?? '',
+                                            style: TextStyle(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                              color:
+                                                  metalType == 'Gold' ||
+                                                      metalType == 'Silver'
+                                                  ? Colors.black87
+                                                  : metalColor(),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
@@ -294,7 +398,6 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
                             ],
                           ),
                           const Divider(height: 30),
-
                           _buildValueRow(
                             "Current Value",
                             formatPrice(currentValue),
@@ -315,6 +418,7 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
                 ),
 
                 const SizedBox(height: 20),
+
                 Padding(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12.0,
@@ -338,16 +442,16 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Title Row with Selected Range Chip
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
+                              // ✅ CHANGED — dynamic chart title for all 4 metals
                               Text(
-                                "${metalType == 'Gold' ? 'Gold' : 'Silver'} Performance Chart",
+                                chartTitle(),
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
-                                  color: Color(0xFF1E293B), // Dark text
+                                  color: Color(0xFF1E293B),
                                 ),
                               ),
                               Container(
@@ -373,7 +477,6 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
 
                           const SizedBox(height: 16),
 
-                          // Time Filter Buttons (2-row layout)
                           Wrap(
                             spacing: 4,
                             runSpacing: 4,
@@ -382,13 +485,10 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
                               return GestureDetector(
                                 onTap: () async {
                                   if (_selectedRange == option) return;
-
                                   setState(() {
                                     _selectedRange = option;
-                                    // _isLoading = true;
                                     _error = null;
                                   });
-
                                   try {
                                     final fetchedData =
                                         await _fetchProductDetails(option);
@@ -407,7 +507,7 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
                                   width:
                                       (MediaQuery.of(context).size.width -
                                           100) /
-                                      4, // 4 per row
+                                      4,
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 5,
                                   ),
@@ -451,7 +551,6 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
 
                           const SizedBox(height: 20),
 
-                          // Chart
                           SizedBox(
                             height: 450,
                             child: Padding(
@@ -459,9 +558,10 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
                                 horizontal: 0,
                               ),
                               child: MetalHoldingsLineChartForPLC(
-                                key: ValueKey(_selectedRange), // force rebuild
+                                key: ValueKey(_selectedRange),
                                 metalInOuncesData: metalInOuncesData,
-                                isGoldView: widget.metal == 'Gold',
+                                // ✅ CHANGED — isGoldView now covers Platinum/Palladium too
+                                isGoldView: widget.metal != 'Silver',
                                 metal: widget.metal,
                                 selectedRange: _selectedRange,
                               ),
@@ -475,7 +575,7 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
 
                 const SizedBox(height: 20),
 
-                // ✅ Transaction History Section
+                // Transaction History
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: Container(
@@ -494,7 +594,6 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 16,
@@ -534,216 +633,205 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
                               )
                             : Scrollbar(
                                 controller: scrollController,
-                                thumbVisibility:
-                                    true, // Always show the scrollbar thumb
-                                thickness: 8, // Thickness of the scrollbar
+                                thumbVisibility: true,
+                                thickness: 8,
                                 interactive: true,
                                 radius: const Radius.circular(4),
                                 child: Padding(
                                   padding: const EdgeInsets.only(bottom: 50.0),
                                   child: SingleChildScrollView(
-                                    scrollDirection: Axis
-                                        .horizontal, // Enable horizontal scrolling
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        // Add any additional styling or borders here
+                                    scrollDirection: Axis.horizontal,
+                                    child: DataTable(
+                                      headingRowColor:
+                                          WidgetStateProperty.resolveWith(
+                                            (states) => Colors.grey.shade100,
+                                          ),
+                                      dataRowColor:
+                                          WidgetStateProperty.resolveWith(
+                                            (states) => Colors.white,
+                                          ),
+                                      dividerThickness: 1,
+                                      headingTextStyle: const TextStyle(
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                      child: DataTable(
-                                        headingRowColor:
-                                            WidgetStateProperty.resolveWith(
-                                              (states) => Colors.grey.shade100,
-                                            ),
-                                        dataRowColor:
-                                            WidgetStateProperty.resolveWith(
-                                              (states) => Colors.white,
-                                            ),
-                                        dividerThickness: 1,
-                                        headingTextStyle: const TextStyle(
-                                          fontWeight: FontWeight.bold,
+                                      columnSpacing: 0,
+                                      border: TableBorder(
+                                        horizontalInside: BorderSide(
+                                          color: Colors.grey.shade300,
+                                          width: 1,
                                         ),
-                                        columnSpacing: 0,
-                                        border: TableBorder(
-                                          horizontalInside: BorderSide(
-                                            color: Colors.grey.shade300,
-                                            width: 1,
-                                          ),
-                                          verticalInside: BorderSide(
-                                            color: Colors.grey.shade300,
-                                            width: 1,
+                                        verticalInside: BorderSide(
+                                          color: Colors.grey.shade300,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      columns: const [
+                                        DataColumn(
+                                          label: Padding(
+                                            padding: EdgeInsets.all(6.0),
+                                            child: Text('Date'),
                                           ),
                                         ),
-                                        columns: const [
-                                          DataColumn(
-                                            label: Padding(
-                                              padding: EdgeInsets.all(6.0),
-                                              child: Text('Date'),
-                                            ),
+                                        DataColumn(
+                                          label: Padding(
+                                            padding: EdgeInsets.all(6.0),
+                                            child: Text('Transaction\nType'),
                                           ),
-                                          DataColumn(
-                                            label: Padding(
-                                              padding: EdgeInsets.all(6.0),
-                                              child: Text('Transaction\nType'),
-                                            ),
+                                        ),
+                                        DataColumn(
+                                          label: Padding(
+                                            padding: EdgeInsets.all(6.0),
+                                            child: Text('Transaction\nQty'),
                                           ),
-                                          DataColumn(
-                                            label: Padding(
-                                              padding: EdgeInsets.all(6.0),
-                                              child: Text('Transaction\nQty'),
-                                            ),
+                                        ),
+                                        DataColumn(
+                                          label: Padding(
+                                            padding: EdgeInsets.all(6.0),
+                                            child: Text('Available\nQty'),
                                           ),
-                                          DataColumn(
-                                            label: Padding(
-                                              padding: EdgeInsets.all(6.0),
-                                              child: Text('Available\nQty'),
-                                            ),
+                                        ),
+                                        DataColumn(
+                                          label: Padding(
+                                            padding: EdgeInsets.all(6.0),
+                                            child: Text('Unit\nPrice'),
                                           ),
-                                          DataColumn(
-                                            label: Padding(
-                                              padding: EdgeInsets.all(6.0),
-                                              child: Text('Unit\nPrice'),
-                                            ),
-                                          ),
-                                        ],
-                                        rows: [
-                                          if (transactionProducts.isNotEmpty)
-                                            ...transactionProducts.map<
-                                              DataRow
-                                            >((tx) {
-                                              final transactionType =
-                                                  tx['transactionType'] ?? '';
-                                              final isPurchase =
-                                                  transactionType ==
-                                                  'PURCHASED';
-                                              final color = isPurchase
-                                                  ? Colors.blue
-                                                  : Colors.green;
-                                              final icon = isPurchase
-                                                  ? Icons.arrow_downward
-                                                  : Icons.arrow_upward;
+                                        ),
+                                      ],
+                                      rows: [
+                                        if (transactionProducts.isNotEmpty)
+                                          ...transactionProducts.map<DataRow>((
+                                            tx,
+                                          ) {
+                                            final transactionType =
+                                                tx['transactionType'] ?? '';
+                                            final isPurchase =
+                                                transactionType == 'PURCHASED';
+                                            final color = isPurchase
+                                                ? Colors.blue
+                                                : Colors.green;
+                                            final icon = isPurchase
+                                                ? Icons.arrow_downward
+                                                : Icons.arrow_upward;
 
-                                              final rawDateStr =
-                                                  tx['transactionDate'] ?? '';
-                                              DateTime? parsedDate;
-                                              try {
-                                                parsedDate = DateFormat(
-                                                  "MM/dd/yyyy HH:mm:ss",
-                                                ).parse(rawDateStr);
-                                              } catch (_) {}
+                                            final rawDateStr =
+                                                tx['transactionDate'] ?? '';
+                                            DateTime? parsedDate;
+                                            try {
+                                              parsedDate = DateFormat(
+                                                "MM/dd/yyyy HH:mm:ss",
+                                              ).parse(rawDateStr);
+                                            } catch (_) {}
 
-                                              final formattedDate =
-                                                  parsedDate != null
-                                                  ? "${DateFormat("MMM d,").format(parsedDate)}\n${DateFormat("yyyy").format(parsedDate)}"
-                                                  : 'Invalid Date';
+                                            final formattedDate =
+                                                parsedDate != null
+                                                ? "${DateFormat("MMM d,").format(parsedDate)}\n${DateFormat("yyyy").format(parsedDate)}"
+                                                : 'Invalid Date';
 
-                                              return DataRow(
-                                                cells: [
-                                                  DataCell(
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            12,
-                                                          ),
-                                                      child: Text(
-                                                        formattedDate,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  DataCell(
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            12,
-                                                          ),
-                                                      child: Row(
-                                                        children: [
-                                                          Icon(
-                                                            icon,
-                                                            size: 14,
-                                                            color: color,
-                                                          ),
-                                                          const SizedBox(
-                                                            width: 4,
-                                                          ),
-                                                          Text(
-                                                            isPurchase
-                                                                ? "Purchased"
-                                                                : tx['transactionType'],
-                                                            style: TextStyle(
-                                                              color: color,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w500,
-                                                              fontSize: 13,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  DataCell(
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            12,
-                                                          ),
-                                                      child: Text(
-                                                        tx['transactionQuantity']
-                                                                ?.toString() ??
-                                                            "0",
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  DataCell(
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            12,
-                                                          ),
-                                                      child: Text(
-                                                        tx['afterQuantity']
-                                                                ?.toString() ??
-                                                            "0",
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  DataCell(
-                                                    Padding(
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                            12,
-                                                          ),
-                                                      child: Text(
-                                                        formatPrice(
-                                                          tx['transactionPrice'] ??
-                                                              0,
-                                                        ),
-                                                        style: const TextStyle(
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          fontSize: 13,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              );
-                                            }).toList(),
-                                          if (transactionProducts.isEmpty)
-                                            const DataRow(
+                                            return DataRow(
                                               cells: [
                                                 DataCell(
-                                                  Text(
-                                                    'No Transactions to display.',
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          12,
+                                                        ),
+                                                    child: Text(formattedDate),
                                                   ),
                                                 ),
-                                                DataCell(Text('')),
-                                                DataCell(Text('')),
-                                                DataCell(Text('')),
-                                                DataCell(Text('')),
+                                                DataCell(
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          12,
+                                                        ),
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                          icon,
+                                                          size: 14,
+                                                          color: color,
+                                                        ),
+                                                        const SizedBox(
+                                                          width: 4,
+                                                        ),
+                                                        Text(
+                                                          isPurchase
+                                                              ? "Purchased"
+                                                              : tx['transactionType'],
+                                                          style: TextStyle(
+                                                            color: color,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            fontSize: 13,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                DataCell(
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          12,
+                                                        ),
+                                                    child: Text(
+                                                      tx['transactionQuantity']
+                                                              ?.toString() ??
+                                                          "0",
+                                                    ),
+                                                  ),
+                                                ),
+                                                DataCell(
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          12,
+                                                        ),
+                                                    child: Text(
+                                                      tx['afterQuantity']
+                                                              ?.toString() ??
+                                                          "0",
+                                                    ),
+                                                  ),
+                                                ),
+                                                DataCell(
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          12,
+                                                        ),
+                                                    child: Text(
+                                                      formatPrice(
+                                                        tx['transactionPrice'] ??
+                                                            0,
+                                                      ),
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        fontSize: 13,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
                                               ],
-                                            ),
-                                        ],
-                                      ),
+                                            );
+                                          }).toList(),
+                                        if (transactionProducts.isEmpty)
+                                          const DataRow(
+                                            cells: [
+                                              DataCell(
+                                                Text(
+                                                  'No Transactions to display.',
+                                                ),
+                                              ),
+                                              DataCell(Text('')),
+                                              DataCell(Text('')),
+                                              DataCell(Text('')),
+                                              DataCell(Text('')),
+                                            ],
+                                          ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -762,62 +850,12 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
     );
   }
 
-  /// Helper for mobile row layout
-  Widget _buildTwoColumnRow(
-    String leftLabel,
-    String leftValue,
-    String rightLabel,
-    String rightValue,
-  ) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                leftLabel,
-                style: const TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-              Text(
-                leftValue,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (rightLabel.isNotEmpty)
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  rightLabel,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-                Text(
-                  rightValue,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-  }
-
   Widget _buildValueRow(String label, String value, {Color? color}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         children: [
-          Expanded(child: Text(label, style: TextStyle(fontSize: 16))),
+          Expanded(child: Text(label, style: const TextStyle(fontSize: 16))),
           Text(
             value,
             style: TextStyle(
