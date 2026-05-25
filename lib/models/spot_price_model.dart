@@ -42,9 +42,11 @@ class SpotData {
   final double goldlowspot;
   final double goldhighspot;
   final double platinumlowspot;
-  final double palladiumhighspot;
-  final double palladiumlowspot;
   final double platinumhighspot;
+  final double palladiumlowspot;
+  final double palladiumhighspot;
+  final PNL? pnl; // make nullable
+
   SpotData({
     required this.timestamp,
     required this.spotTime,
@@ -72,37 +74,63 @@ class SpotData {
     required this.platinumhighspot,
     required this.palladiumlowspot,
     required this.palladiumhighspot,
+    this.pnl, // allow null
   });
 
   factory SpotData.fromJson(Map<String, dynamic> json) {
     return SpotData(
-      timestamp: json['timestamp'],
-      spotTime: json['spotTime'],
-      goldAsk: (json['goldAsk'] as num).toDouble(),
-      goldBid: (json['goldBid'] as num).toDouble(),
-      goldChange: (json['goldChange'] as num).toDouble(),
-      goldChangePercent: (json['goldChangePercent'] as num).toDouble(),
-      silverAsk: (json['silverAsk'] as num).toDouble(),
-      silverBid: (json['silverBid'] as num).toDouble(),
-      silverChange: (json['silverChange'] as num).toDouble(),
-      silverChangePercent: (json['silverChangePercent'] as num).toDouble(),
-      platinumAsk: (json['platinumAsk'] as num).toDouble(),
-      platinumBid: (json['platinumBid'] as num).toDouble(),
-      platinumChange: (json['platinumChange'] as num).toDouble(),
-      platinumChangePercent: (json['platinumChangePercent'] as num).toDouble(),
-      palladiumAsk: (json['palladiumAsk'] as num).toDouble(),
-      palladiumBid: (json['palladiumBid'] as num).toDouble(),
-      palladiumChange: (json['palladiumChange'] as num).toDouble(),
-      palladiumChangePercent: (json['palladiumChangePercent'] as num)
-          .toDouble(),
-      silverlowspot: (json['silverlowspot'] as num).toDouble(),
-      silverhighspot: (json['silverhighspot'] as num).toDouble(),
-      goldlowspot: (json['goldlowspot'] as num).toDouble(),
-      goldhighspot: (json['goldhighspot'] as num).toDouble(),
-      platinumlowspot: (json['platinumlowspot'] as num).toDouble(),
-      platinumhighspot: (json['platinumhighspot'] as num).toDouble(),
-      palladiumlowspot: (json['palladiumlowspot'] as num).toDouble(),
-      palladiumhighspot: (json['palladiumhighspot'] as num).toDouble(),
+      timestamp: json['timestamp'] ?? '',
+      spotTime: json['spotTime'] ?? '',
+      goldAsk: (json['goldAsk'] as num?)?.toDouble() ?? 0.0,
+      goldBid: (json['goldBid'] as num?)?.toDouble() ?? 0.0,
+      goldChange: (json['goldChange'] as num?)?.toDouble() ?? 0.0,
+      goldChangePercent: (json['goldChangePercent'] as num?)?.toDouble() ?? 0.0,
+      silverAsk: (json['silverAsk'] as num?)?.toDouble() ?? 0.0,
+      silverBid: (json['silverBid'] as num?)?.toDouble() ?? 0.0,
+      silverChange: (json['silverChange'] as num?)?.toDouble() ?? 0.0,
+      silverChangePercent:
+          (json['silverChangePercent'] as num?)?.toDouble() ?? 0.0,
+      platinumAsk: (json['platinumAsk'] as num?)?.toDouble() ?? 0.0,
+      platinumBid: (json['platinumBid'] as num?)?.toDouble() ?? 0.0,
+      platinumChange: (json['platinumChange'] as num?)?.toDouble() ?? 0.0,
+      platinumChangePercent:
+          (json['platinumChangePercent'] as num?)?.toDouble() ?? 0.0,
+      palladiumAsk: (json['palladiumAsk'] as num?)?.toDouble() ?? 0.0,
+      palladiumBid: (json['palladiumBid'] as num?)?.toDouble() ?? 0.0,
+      palladiumChange: (json['palladiumChange'] as num?)?.toDouble() ?? 0.0,
+      palladiumChangePercent:
+          (json['palladiumChangePercent'] as num?)?.toDouble() ?? 0.0,
+      silverlowspot: (json['silverlowspot'] as num?)?.toDouble() ?? 0.0,
+      silverhighspot: (json['silverhighspot'] as num?)?.toDouble() ?? 0.0,
+      goldlowspot: (json['goldlowspot'] as num?)?.toDouble() ?? 0.0,
+      goldhighspot: (json['goldhighspot'] as num?)?.toDouble() ?? 0.0,
+      platinumlowspot: (json['platinumlowspot'] as num?)?.toDouble() ?? 0.0,
+      platinumhighspot: (json['platinumhighspot'] as num?)?.toDouble() ?? 0.0,
+      palladiumlowspot: (json['palladiumlowspot'] as num?)?.toDouble() ?? 0.0,
+      palladiumhighspot: (json['palladiumhighspot'] as num?)?.toDouble() ?? 0.0,
+      pnl: json['pnl'] != null ? PNL.fromJson(json['pnl']) : null,
+    );
+  }
+}
+
+class PNL {
+  final double totalCurrentAssetValue;
+  final double dayPnlDollar;
+  final double dayChangePercentage;
+
+  PNL({
+    required this.totalCurrentAssetValue,
+    required this.dayPnlDollar,
+    required this.dayChangePercentage,
+  });
+
+  factory PNL.fromJson(Map<String, dynamic> json) {
+    return PNL(
+      totalCurrentAssetValue:
+          (json['totalCurrentAssetValue'] as num?)?.toDouble() ?? 0.0,
+      dayPnlDollar: (json['dayPnlDollar'] as num?)?.toDouble() ?? 0.0,
+      dayChangePercentage:
+          (json['dayChangePercentage'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

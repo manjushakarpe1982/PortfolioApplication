@@ -150,8 +150,17 @@ class InvestmentData {
   final double totalSilverInvestment;
   final double totalSilverOunces;
   final double totalSilverInvested;
+  final double totalPlatinumCurrent;
+  final double totalPlatinumInvested;
+  final double totalPalladiumCurrent;
+  final double totalPalladiumInvested;
+  final double totalPlatinumOunces;
+  final double totalPalladiumOunces;
+
   final double dayGold;
   final double daySilver;
+  final double dayPalladium;
+  final double dayPlatinum;
 
   InvestmentData({
     required this.customerId,
@@ -165,8 +174,16 @@ class InvestmentData {
     required this.totalSilverInvestment,
     required this.totalSilverOunces,
     required this.totalSilverInvested,
+    required this.totalPlatinumCurrent,
+    required this.totalPlatinumInvested,
+    required this.totalPalladiumCurrent,
+    required this.totalPalladiumInvested,
+    required this.totalPlatinumOunces,
+    required this.totalPalladiumOunces,
     required this.dayGold,
     required this.daySilver,
+    required this.dayPalladium,
+    required this.dayPlatinum,
   });
 
   // Factory constructor to handle missing or invalid values
@@ -183,8 +200,16 @@ class InvestmentData {
       totalSilverInvestment: json['totalSilverInvestment']?.toDouble() ?? 0.0,
       totalSilverOunces: json['totalSilverOunces']?.toDouble() ?? 0.0,
       totalSilverInvested: json['totalSilverInvested']?.toDouble() ?? 0.0,
+      totalPlatinumCurrent: json['totalPlatinumCurrent']?.toDouble() ?? 0.0,
+      totalPlatinumInvested: json['totalPlatinumInvested']?.toDouble() ?? 0.0,
+      totalPalladiumCurrent: json['totalPalladiumCurrent']?.toDouble() ?? 0.0,
+      totalPalladiumInvested: json['totalPalladiumInvested']?.toDouble() ?? 0.0,
+      totalPlatinumOunces: json['totalPlatinumOunces']?.toDouble() ?? 0.0,
+      totalPalladiumOunces: json['totalPalladiumOunces']?.toDouble() ?? 0.0,
       dayGold: json['dayGold']?.toDouble() ?? 0.0,
       daySilver: json['daySilver']?.toDouble() ?? 0.0,
+      dayPalladium: json['dayPalladium']?.toDouble() ?? 0.0,
+      dayPlatinum: json['dayPlatinum']?.toDouble() ?? 0.0,
     );
   }
 
@@ -202,8 +227,16 @@ class InvestmentData {
       totalSilverInvestment: 0.0,
       totalSilverOunces: 0.0,
       totalSilverInvested: 0.0,
+      totalPlatinumCurrent: 0.0,
+      totalPlatinumInvested: 0.0,
+      totalPalladiumCurrent: 0.0,
+      totalPalladiumInvested: 0.0,
+      totalPlatinumOunces: 0.0,
+      totalPalladiumOunces: 0.0,
       dayGold: 0.0,
       daySilver: 0.0,
+      dayPalladium: 0.0,
+      dayPlatinum: 0.0,
     );
   }
 }

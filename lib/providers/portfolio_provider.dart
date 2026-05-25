@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:bold_portfolio/services/auth_service.dart';
 import 'package:flutter/foundation.dart';
 import '../models/portfolio_model.dart';
 import '../models/spot_price_model.dart';
@@ -20,13 +23,13 @@ class PortfolioProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   // Load Portfolio Data (Now uses real API calls)
-  Future<void> loadPortfolioData() async {
+  Future<void> loadPortfolioData({String? userId}) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       // Fetch Spot Prices and Customer Portfolio Data in Parallel
-      final spotPricesFuture = PortfolioService.fetchSpotPrices();
+      final spotPricesFuture = PortfolioService.fetchSpotPrices(userId: userId);
       final portfolioFuture = PortfolioService.fetchCustomerPortfolio(0, '3M');
 
       final results = await Future.wait([spotPricesFuture, portfolioFuture]);
@@ -79,12 +82,20 @@ class PortfolioProvider with ChangeNotifier {
   }
 
   // Refresh Data from APIs
-  Future<void> refreshDataFromAPIs(frequency) async {
+  Future<void> refreshDataFromAPIs(frequency, {String? userId}) async {
     _isRefreshing = true;
     notifyListeners();
+    final authService = AuthService();
+    final fetchedUser = await authService.getUser();
+
+    final String? base64CustomerId = fetchedUser?.id != null
+        ? base64Encode(utf8.encode(fetchedUser!.id))
+        : null;
 
     try {
-      final spotPricesFuture = PortfolioService.fetchSpotPrices();
+      final spotPricesFuture = PortfolioService.fetchSpotPrices(
+        userId: base64CustomerId,
+      );
       final portfolioFuture = PortfolioService.fetchCustomerPortfolio(
         0,
         frequency,

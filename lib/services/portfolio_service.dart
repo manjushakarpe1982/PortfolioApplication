@@ -9,10 +9,18 @@ final String spotBaseUrl = dotenv.env['SPOT_API_URL']!;
 final String baseUrl = dotenv.env['API_URL']!;
 
 class PortfolioService {
-  static Future<SpotPriceData> fetchSpotPrices() async {
+  static Future<SpotPriceData> fetchSpotPrices({String? userId}) async {
+    final uri = userId != null
+        ? Uri.parse(
+            'https://mobile-dev-spot-api.boldpreciousmetals.com/SpotPrices?cid=$userId',
+          )
+        : Uri.parse(
+            'https://mobile-dev-spot-api.boldpreciousmetals.com/SpotPrices',
+          );
+
     try {
       final response = await http.get(
-        Uri.parse('$spotBaseUrl/SpotPrices'),
+        uri,
         headers: {'Content-Type': 'application/json'},
       );
 

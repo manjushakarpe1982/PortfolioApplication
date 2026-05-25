@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:bold_portfolio/models/spot_price_model.dart';
+import 'package:bold_portfolio/services/auth_service.dart';
 import 'package:bold_portfolio/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:bold_portfolio/services/portfolio_service.dart'; // your API service
@@ -50,8 +53,16 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
   }
 
   Future<void> _fetchSpotPrice() async {
+    final authService = AuthService();
+    final fetchedUser = await authService.getUser();
+
+    final String? base64CustomerId = fetchedUser?.id != null
+        ? base64Encode(utf8.encode(fetchedUser!.id))
+        : null;
     try {
-      final SpotPriceData data = await PortfolioService.fetchSpotPrices();
+      final SpotPriceData data = await PortfolioService.fetchSpotPrices(
+        userId: base64CustomerId,
+      );
       print("Spot Price Data: $data");
       setState(() {
         spotPrice = data.data;

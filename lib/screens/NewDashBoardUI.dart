@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:bold_portfolio/models/portfolio_model.dart';
 import 'package:bold_portfolio/providers/portfolio_provider.dart';
 import 'package:bold_portfolio/screens/HoldingScreen.dart';
@@ -28,12 +30,27 @@ class _DashboardScreenState extends State<BullionDashboard> {
   void initState() {
     super.initState();
     _loadToken();
-    _loadUserId();
+    _loadUserIdAndFetch();
+  }
+
+  Future<void> _loadUserIdAndFetch() async {
+    final authService = AuthService();
+    final fetchedUser = await authService.getUser();
+
+    final String? base64CustomerId = fetchedUser?.id != null
+        ? base64Encode(utf8.encode(fetchedUser!.id))
+        : null;
+
+    setState(() {
+      userId = fetchedUser?.id;
+    });
+
+    // ✅ Now userId is ready — pass it to the provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<PortfolioProvider>(
         context,
         listen: false,
-      ).loadPortfolioData();
+      ).loadPortfolioData(userId: base64CustomerId); // pass here
     });
   }
 
@@ -125,6 +142,23 @@ class _DashboardScreenState extends State<BullionDashboard> {
           }
 
           final portfolioData = portfolioProvider.portfolioData;
+          final spotPrices = portfolioProvider.spotPrices;
+          if (spotPrices != null) {
+            // ADD THIS:
+            print("PNL from spot: ${spotPrices.data.pnl}");
+            print("dayPnlDollar: ${spotPrices.data.pnl?.dayPnlDollar}");
+          }
+
+          print("1. spotPrices null? ${spotPrices == null}");
+          print("2. data.pnl null? ${spotPrices?.data.pnl == null}");
+          print("3. dayPnlDollar: ${spotPrices?.data.pnl?.dayPnlDollar}");
+          print(
+            "4. dayChangePercentage: ${spotPrices?.data.pnl?.dayChangePercentage}",
+          );
+          final pnl = spotPrices?.data.pnl;
+
+          final double dayProfitLoss = pnl?.dayPnlDollar ?? 0;
+
           final customerData = (portfolioData?.data.isNotEmpty ?? false)
               ? portfolioData!.data[0]
               : CustomerData.empty();
@@ -144,10 +178,20 @@ class _DashboardScreenState extends State<BullionDashboard> {
               .toList();
           final investment = portfolioData.data[0].investment;
 
+          final platinumCurrent = investment.totalPlatinumCurrent;
+          final platinumInvested = investment.totalPlatinumInvested;
+          final palladiumCurrent = investment.totalPalladiumCurrent;
+          final palladiumInvested = investment.totalPalladiumInvested;
           final double totalCurrentValue =
-              investment.totalGoldCurrent + investment.totalSilverCurrent;
+              investment.totalGoldCurrent +
+              investment.totalSilverCurrent +
+              platinumCurrent +
+              palladiumCurrent;
           final double totalAcquisitionCost =
-              investment.totalGoldInvested + investment.totalSilverInvested;
+              investment.totalGoldInvested +
+              investment.totalSilverInvested +
+              platinumInvested +
+              palladiumInvested;
 
           final double difference = totalCurrentValue - totalAcquisitionCost;
           final double totalProfitDifference = (difference < 0)
@@ -157,14 +201,14 @@ class _DashboardScreenState extends State<BullionDashboard> {
               ? (totalProfitDifference / totalAcquisitionCost) * 100
               : 0;
 
-          final double dayProfitLoss =
-              investment.dayGold + investment.daySilver;
-          final double percentDayProfitLossPage =
-              investment.dayChangePercentage;
-          final double percentDayProfitLoss =
-              totalAcquisitionCost > 0 && !percentDayProfitLossPage.isNaN
-              ? percentDayProfitLossPage.abs()
-              : 0;
+          final bool hasPlatinum = investment.totalPlatinumOunces > 0;
+          final bool hasPalladium = investment.totalPalladiumOunces > 0;
+
+          final double platinumPnL = platinumCurrent - platinumInvested;
+          final double palladiumPnL = palladiumCurrent - palladiumInvested;
+
+          final double percentDayProfitLoss = (pnl?.dayChangePercentage ?? 0)
+              .abs();
 
           final double daySilverPercent =
               investment.totalSilverInvested > 0 && !percentDayProfitLoss.isNaN
@@ -350,9 +394,58 @@ class _DashboardScreenState extends State<BullionDashboard> {
                     ),
                     const Divider(height: 24),
                   ],
-                  _buildComingSoonRow("Platinum"),
-                  const Divider(height: 24),
-                  _buildComingSoonRow("Palladium"),
+                  if (hasPlatinum) ...[
+                    _buildHoldingRow(
+                      metal: "Platinum",
+                      quantity:
+                          "${formatPrice(investment.totalPlatinumOunces)} ounces",
+                      currentValue: "\$${platinumCurrent.toStringAsFixed(2)}",
+                      purchaseValue: "\$${platinumInvested.toStringAsFixed(2)}",
+                      showReturns: showReturns,
+                      profit: platinumPnL,
+                      profitPct: platinumInvested > 0
+                          ? (platinumPnL / platinumInvested) * 100
+                          : 0,
+                      holdingData: holdingData
+                          .where((h) => h.metal == "Platinum")
+                          .toList(),
+                      isProfit: platinumPnL > 0,
+                      dayProfit: investment.dayPlatinum, // add field if missing
+                      dayPercentProfit: percentDayProfitLoss,
+                      isHoldingDataEmpty: holdingData
+                          .where((h) => h.metal == "Platinum")
+                          .isEmpty,
+                    ),
+                    const Divider(height: 24),
+                  ],
+
+                  if (hasPalladium) ...[
+                    _buildHoldingRow(
+                      metal: "Palladium",
+                      quantity:
+                          "${formatPrice(investment.totalPalladiumOunces)} ounces",
+                      currentValue: "\$${palladiumCurrent.toStringAsFixed(2)}",
+                      purchaseValue:
+                          "\$${palladiumInvested.toStringAsFixed(2)}",
+                      showReturns: showReturns,
+                      profit: palladiumPnL,
+                      profitPct: palladiumInvested > 0
+                          ? (palladiumPnL / palladiumInvested) * 100
+                          : 0,
+                      holdingData: holdingData
+                          .where((h) => h.metal == "Palladium")
+                          .toList(),
+                      isProfit: palladiumPnL > 0,
+                      dayProfit:
+                          investment.dayPalladium ??
+                          0.0, // add field if missing
+                      dayPercentProfit: percentDayProfitLoss,
+                      isHoldingDataEmpty: holdingData
+                          .where((h) => h.metal == "Palladium")
+                          .isEmpty,
+                    ),
+                    const Divider(height: 24),
+                  ],
                 ],
               ),
             ),
@@ -522,9 +615,7 @@ class _DashboardScreenState extends State<BullionDashboard> {
                     ),
                     const SizedBox(width: 3), // very tight spacing
                     Text(
-                      percentDayProfitLoss >= 0
-                          ? '(${percentDayProfitLoss.toStringAsFixed(2)})%'
-                          : '(${percentDayProfitLoss.abs().toStringAsFixed(2)}%)',
+                      '${dayProfitLoss >= 0 ? "+" : "-"}(${percentDayProfitLoss.toStringAsFixed(2)}%)',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
