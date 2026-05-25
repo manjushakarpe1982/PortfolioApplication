@@ -184,12 +184,37 @@ class _GraphsScreenState extends State<GraphsScreen> {
           final goldPercentage = investment.totalGoldCurrent;
           final silverPercentage = (investment.totalSilverCurrent);
           final totalInvestment = goldPercentage + silverPercentage;
-          final goldValue = double.parse(
-            (((goldPercentage / totalInvestment) * 100).toStringAsFixed(2)),
-          );
-          final silverValue = double.parse(
-            (((silverPercentage / totalInvestment) * 100).toStringAsFixed(2)),
-          );
+          // ✅ mirrors calculatePieData — use current values, divide by total
+          final double totalForPie =
+              investment.totalGoldCurrent +
+              investment.totalSilverCurrent +
+              investment.totalPlatinumCurrent +
+              investment.totalPalladiumCurrent;
+
+          final double goldValue = totalForPie > 0
+              ? double.parse(
+                  ((investment.totalGoldCurrent / totalForPie) * 100)
+                      .toStringAsFixed(2),
+                )
+              : 0;
+          final double silverValue = totalForPie > 0
+              ? double.parse(
+                  ((investment.totalSilverCurrent / totalForPie) * 100)
+                      .toStringAsFixed(2),
+                )
+              : 0;
+          final double platinumValue = totalForPie > 0
+              ? double.parse(
+                  ((investment.totalPlatinumCurrent / totalForPie) * 100)
+                      .toStringAsFixed(2),
+                )
+              : 0;
+          final double palladiumValue = totalForPie > 0
+              ? double.parse(
+                  ((investment.totalPalladiumCurrent / totalForPie) * 100)
+                      .toStringAsFixed(2),
+                )
+              : 0;
 
           final metalInOuncesData = portfolioData.data[0].metalInOunces;
           final metalCandleChartData = portfolioData.data[0].metalCandleChart;
@@ -387,6 +412,8 @@ class _GraphsScreenState extends State<GraphsScreen> {
                         ? AssetAllocationPieChart(
                             goldPercentage: goldValue,
                             silverPercentage: silverValue,
+                            platinumPercentage: platinumValue,
+                            palladiumPercentage: palladiumValue,
                           )
                         : (selectedTab == 'Silver Holdings' ||
                               selectedTab == 'Gold Holdings' ||

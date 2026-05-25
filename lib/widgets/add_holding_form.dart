@@ -138,9 +138,7 @@ class _AddHoldingFormState extends State<AddHoldingForm> {
         List<dynamic> results = data['dataList']['searchProductsByKW'] ?? [];
 
         // Filter the list for products with "Gold" or "Silver" metal
-        List<dynamic> filteredProducts = results.where((product) {
-          return product['metal'] == 'Gold' || product['metal'] == 'Silver';
-        }).toList();
+        List<dynamic> filteredProducts = results;
 
         if (selectedDealer == 'Not Purchased on Bold' &&
             productController.text.trim().isNotEmpty
@@ -723,6 +721,8 @@ class _AddHoldingFormState extends State<AddHoldingForm> {
                                     'Select Metal', // Add this as the first option
                                     'Silver',
                                     'Gold',
+                                    'Platinum',
+                                    'Palladium',
                                   ]
                                   .map(
                                     (m) => DropdownMenuItem(
