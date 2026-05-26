@@ -21,7 +21,26 @@ class _SpotPriceScreenState extends State<SpotPriceScreen> {
   String selectedMetal = "Gold";
   bool errorOccurred = false;
 
-  // ----------- Filter mapping: UI text → API value -----------
+  // ✅ All 4 metals with their colors
+  static const Map<String, Color> _metalColors = {
+    'Gold': Color.fromARGB(255, 220, 166, 2),
+    'Silver': Color(0xFF808080),
+    'Platinum': Color(0xFF93C5FD),
+    'Palladium': Color(0xFF2DD4BF),
+  };
+
+  // ✅ Safe getter — never throws, has fallback
+  Color get _currentMetalColor =>
+      _metalColors[selectedMetal] ?? const Color.fromARGB(255, 220, 166, 2);
+
+  // ✅ Metal ID mapping for API
+  final Map<String, int> metalIdMap = {
+    'Gold': 1,
+    'Silver': 2,
+    'Platinum': 3,
+    'Palladium': 4,
+  };
+
   final Map<String, String> filterMap = {
     "24H": "1D",
     "1W": "1W",
@@ -33,24 +52,25 @@ class _SpotPriceScreenState extends State<SpotPriceScreen> {
     "All": "ALL",
   };
 
-  String _selectedFilterUI = "24H"; // for ChoiceChip UI
-  String _selectedRangeAPI = "1D"; // for API
+  String _selectedFilterUI = "24H";
+  String _selectedRangeAPI = "1D";
   SpotData? latestSpotPrice;
   List<ChartData> metalInOuncesData = [];
   bool isLoading = false;
+  bool _isDropdownOpen = false; // ✅ tracks dropdown open state
   final String spotBaseUrl = dotenv.env['SPOT_API_URL']!;
 
   @override
   void initState() {
     super.initState();
-    _fetchMetalData(_selectedRangeAPI); // initial API call
+    _fetchMetalData(_selectedRangeAPI);
   }
 
-  // -------------------- API Fetch --------------------
   Future<void> _fetchMetalData(String range) async {
     setState(() => isLoading = true);
 
-    final int metalId = selectedMetal == "Gold" ? 1 : 2;
+    // ✅ Use metalIdMap for all 4 metals
+    final int metalId = metalIdMap[selectedMetal] ?? 1;
     final String url =
         "$spotBaseUrl/SpotPrices/GetHistoricalSpotPriceChart?MetalId=$metalId&Type=$range";
 
@@ -61,12 +81,9 @@ class _SpotPriceScreenState extends State<SpotPriceScreen> {
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
-
         if (jsonData['success'] == true) {
           final chartData = jsonData['data']['chartdata'];
-          print("ChartData Length: ${chartData.length}");
-          errorOccurred = false; // Reset error state
-
+          errorOccurred = false;
           setState(() {
             metalInOuncesData = (chartData as List)
                 .map((item) => ChartData.fromJson(item))
@@ -77,33 +94,29 @@ class _SpotPriceScreenState extends State<SpotPriceScreen> {
         }
       } else {
         debugPrint("API Error: ${response.statusCode}");
-        errorOccurred = true; // Set error state when fetching fails
+        errorOccurred = true;
       }
     } catch (e) {
       debugPrint("API Exception: $e");
-      errorOccurred = true; // Set error state when fetching fails
+      errorOccurred = true;
     } finally {
       setState(() => isLoading = false);
     }
   }
 
-  // -------------------- UI --------------------
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          _metalTabs(),
+          // ✅ Dropdown selector replaces old tab buttons
+          _metalDropdown(),
           const SizedBox(height: 16),
           SpotPriceCard(
             metal: selectedMetal,
             onSpotPriceUpdated: (spotData) {
-              print("Received spot price: $spotData");
-              // Example: store it in parent state
-              setState(() {
-                latestSpotPrice = spotData;
-              });
+              setState(() => latestSpotPrice = spotData);
               widget.onLatestSpotPriceChanged(spotData);
             },
           ),
@@ -116,54 +129,128 @@ class _SpotPriceScreenState extends State<SpotPriceScreen> {
     );
   }
 
-  // -------------------- Metal Tabs --------------------
-  Widget _metalTabs() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE6E6E6), // light cream outer bg
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: Row(children: [_tabButton("Gold", 0), _tabButton("Silver", 1)]),
-    );
-  }
-
-  Widget _tabButton(String text, int index) {
-    final bool isSelected = selectedTab == index;
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            selectedTab = index;
-            selectedMetal = text;
-          });
-          _fetchMetalData(_selectedRangeAPI);
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? const Color(0xFFE0A800) // selected yellow
-                : const Color(0xFFE6E6E6), // greyed-out bg (snap-like)
-            borderRadius: BorderRadius.circular(26),
-          ),
-          child: Text(
-            text,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: isSelected
-                  ? Colors.black
-                  : Colors.grey.shade600, // grey text for unselected
+  // ✅ NEW — Dropdown selector matching the screenshot UI
+  Widget _metalDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // ── Dropdown trigger button ───────────────────────────────────────
+        GestureDetector(
+          onTap: () => setState(() => _isDropdownOpen = !_isDropdownOpen),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            decoration: BoxDecoration(
+              color: snapYellow,
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  selectedMetal,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                  ),
+                ),
+                Icon(
+                  _isDropdownOpen
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down,
+                  color: Colors.black,
+                ),
+              ],
             ),
           ),
         ),
-      ),
+
+        // ── Dropdown menu ─────────────────────────────────────────────────
+        if (_isDropdownOpen)
+          Container(
+            margin: const EdgeInsets.only(top: 4),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.12),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              children: _metalColors.entries.map((entry) {
+                final String name = entry.key;
+                final Color color = entry.value;
+                final bool isSelected = selectedMetal == name;
+
+                return InkWell(
+                  onTap: () {
+                    setState(() {
+                      selectedMetal = name;
+                      _isDropdownOpen = false;
+                    });
+                    _fetchMetalData(_selectedRangeAPI);
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
+                    decoration: BoxDecoration(
+                      // ✅ Highlight selected item with light tint of metal color
+                      color: isSelected
+                          ? color.withOpacity(0.15)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            // ✅ Color dot per metal
+                            Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              name,
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                        // ✅ Checkmark for selected item
+                        if (isSelected)
+                          Icon(Icons.check, color: color, size: 20),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+      ],
     );
   }
 
-  // -------------------- Time Filters --------------------
+  // ✅ UPDATED — time filter chip color matches selected metal
   Widget _timeFilters() {
     final filters = ["24H", "1W", "1M", "6M", "YTD", "1Y", "5Y", "All"];
 
@@ -173,23 +260,19 @@ class _SpotPriceScreenState extends State<SpotPriceScreen> {
         return ChoiceChip(
           label: Text(e, style: const TextStyle(color: Colors.black)),
           selected: _selectedFilterUI == e,
-          selectedColor: selectedMetal == 'Silver'
-              ? Colors.grey.shade400
-              : snapYellow,
-
+          selectedColor: snapYellow,
           onSelected: (_) {
             setState(() {
-              _selectedFilterUI = e; // update UI
-              _selectedRangeAPI = filterMap[e] ?? "1D"; // map to API
+              _selectedFilterUI = e;
+              _selectedRangeAPI = filterMap[e] ?? "1D";
             });
-            _fetchMetalData(_selectedRangeAPI); // fetch API
+            _fetchMetalData(_selectedRangeAPI);
           },
         );
       }).toList(),
     );
   }
 
-  // -------------------- Chart --------------------
   Widget _chartPlaceholder() {
     return Container(
       height: 450,
@@ -201,14 +284,12 @@ class _SpotPriceScreenState extends State<SpotPriceScreen> {
               metal: selectedMetal,
               selectedFilter: _selectedFilterUI,
               errorOccurred: errorOccurred,
-              pressedRetry: () {
-                _fetchMetalData(_selectedRangeAPI);
-              },
+              chartColor: _currentMetalColor, // ✅ NEW — pass metal color
+              pressedRetry: () => _fetchMetalData(_selectedRangeAPI),
             ),
     );
   }
 
-  // -------------------- Card Decoration --------------------
   BoxDecoration _cardDecoration() {
     return BoxDecoration(
       color: Colors.white,

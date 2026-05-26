@@ -10,6 +10,7 @@ class ChartPage extends StatefulWidget {
   final String selectedFilter;
   final bool errorOccurred;
   final VoidCallback? pressedRetry;
+  final Color chartColor;
 
   const ChartPage({
     super.key,
@@ -17,6 +18,7 @@ class ChartPage extends StatefulWidget {
     required this.metal,
     required this.selectedFilter,
     required this.errorOccurred,
+    required this.chartColor,
     this.pressedRetry,
   });
 
@@ -28,10 +30,6 @@ class _ChartPageState extends State<ChartPage> {
   bool isLoading = false;
   List<ChartData> chartData = [];
   late String metalTitle;
-  late String metalColor;
-  late String metalUrl;
-  late Map<String, dynamic> gradientFill;
-  late double metalId;
 
   @override
   void initState() {
@@ -40,34 +38,87 @@ class _ChartPageState extends State<ChartPage> {
     metalTitle =
         "${widget.metal[0].toUpperCase()}${widget.metal.substring(1)} Spot Chart";
   }
-  // -------------------- Helpers --------------------
+
+  // ── Helpers ─────────────────────────────────────────────────────────────
 
   bool get _isShortRange =>
       widget.selectedFilter == "24H" || widget.selectedFilter == "1W";
 
-  bool get _isSilver => widget.metal == "Silver";
-
   DateTime get _minX => widget.data.first.timestamp;
   DateTime get _maxX => widget.data.last.timestamp;
 
-  Color get _borderColor =>
-      _isSilver ? const Color(0xFF9E9E9E) : const Color(0xFFFFC107);
+  // ✅ Dark border color per metal
+  Color get _borderColor {
+    switch (widget.metal) {
+      case 'Gold':
+        return const Color(0xFFFFC107); // dark amber/gold
+      case 'Silver':
+        return const Color(0xFF9E9E9E); // dark grey
+      case 'Platinum':
+        return const Color(0xFF3B82F6); // dark blue (darker than 0xFF93C5FD)
+      case 'Palladium':
+        return const Color(0xFF0D9488); // dark teal (darker than 0xFF2DD4BF)
+      default:
+        return const Color(0xFFFFC107);
+    }
+  }
 
-  LinearGradient get _areaGradient => LinearGradient(
-    colors: _isSilver
-        ? [
-            const Color(0xFFBDBDBD).withOpacity(0.6),
-            const Color(0xFFE0E0E0).withOpacity(0.15),
-          ]
-        : [
+  // ✅ Light gradient fill per metal — dark on top, very light at bottom
+  LinearGradient get _areaGradient {
+    switch (widget.metal) {
+      case 'Gold':
+        return LinearGradient(
+          colors: [
+            const Color(0xFFFFC107).withOpacity(0.6), // dark gold top
+            const Color(0xFFFFF3CD).withOpacity(0.15), // light gold bottom
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      case 'Silver':
+        return LinearGradient(
+          colors: [
+            const Color(0xFF9E9E9E).withOpacity(0.6), // dark grey top
+            const Color(0xFFE0E0E0).withOpacity(0.15), // light grey bottom
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      case 'Platinum':
+        return LinearGradient(
+          colors: [
+            const Color(0xFF3B82F6).withOpacity(0.6), // dark blue top
+            const Color(
+              0xFFDBEAFE,
+            ).withOpacity(0.15), // light blue bottom (0xFFDBEAFE = blue-100)
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      case 'Palladium':
+        return LinearGradient(
+          colors: [
+            const Color(0xFF0D9488).withOpacity(0.6), // dark teal top
+            const Color(
+              0xFFCCFBF1,
+            ).withOpacity(0.15), // light teal bottom (0xFFCCFBF1 = teal-100)
+          ],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+      default:
+        return LinearGradient(
+          colors: [
             const Color(0xFFFFC107).withOpacity(0.6),
             const Color(0xFFFFF3CD).withOpacity(0.15),
           ],
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-  );
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        );
+    }
+  }
 
-  // -------------------- X AXIS --------------------
+  // ── X Axis ──────────────────────────────────────────────────────────────
 
   DateTimeAxis _buildXAxis() {
     switch (widget.selectedFilter) {
@@ -82,14 +133,12 @@ class _ChartPageState extends State<ChartPage> {
           axisLine: const AxisLine(width: 0),
           labelStyle: const TextStyle(fontSize: 12),
         );
-
       case "1W":
         return DateTimeAxis(
           intervalType: DateTimeIntervalType.days,
           interval: 1,
           dateFormat: DateFormat('dd MMM'),
         );
-
       case "1M":
       case "6M":
       case "1Y":
@@ -99,7 +148,6 @@ class _ChartPageState extends State<ChartPage> {
           interval: 1,
           dateFormat: DateFormat('MMM yyyy'),
         );
-
       case "5Y":
       case "All":
         return DateTimeAxis(
@@ -107,13 +155,12 @@ class _ChartPageState extends State<ChartPage> {
           interval: 1,
           dateFormat: DateFormat('yyyy'),
         );
-
       default:
         return DateTimeAxis();
     }
   }
 
-  // -------------------- Y AXIS --------------------
+  // ── Y Axis ───────────────────────────────────────────────────────────────
 
   NumericAxis _buildTightYAxis() {
     final min = widget.data.map((e) => e.price).reduce((a, b) => a < b ? a : b);
@@ -134,9 +181,8 @@ class _ChartPageState extends State<ChartPage> {
   NumericAxis _buildWideYAxis() {
     final min = widget.data.map((e) => e.price).reduce((a, b) => a < b ? a : b);
     final max = widget.data.map((e) => e.price).reduce((a, b) => a > b ? a : b);
-
     final range = max - min;
-    final padding = range == 0 ? 1 : range * 0.2; // 20% padding
+    final padding = range == 0 ? 1 : range * 0.2;
 
     return NumericAxis(
       minimum: (min - padding).clamp(0, double.infinity),
@@ -153,38 +199,31 @@ class _ChartPageState extends State<ChartPage> {
     return DateFormat('EEEE, dd MMM • hh:mm a').format(date);
   }
 
-  // -------------------- TRACKBALL --------------------
+  // ── Trackball ────────────────────────────────────────────────────────────
+
   TrackballBehavior get _trackballBehavior => TrackballBehavior(
     enable: true,
-
-    // 🔥 IMPORTANT: use singleTap
     activationMode: ActivationMode.singleTap,
-
     lineType: TrackballLineType.vertical,
     lineWidth: 1,
     lineColor: Colors.grey,
-
     tooltipSettings: const InteractiveTooltip(
       enable: true,
-      color: Colors.transparent, // builder will handle UI
+      color: Colors.transparent,
     ),
-
     markerSettings: const TrackballMarkerSettings(
       markerVisibility: TrackballVisibilityMode.visible,
       height: 8,
       width: 8,
     ),
     builder: (BuildContext context, TrackballDetails details) {
-      if (details.pointIndex == null) {
-        return const SizedBox.shrink();
-      }
+      if (details.pointIndex == null) return const SizedBox.shrink();
 
       final data = widget.data[details.pointIndex!];
 
       return Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 🔹 PRICE LABEL
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
@@ -199,10 +238,7 @@ class _ChartPageState extends State<ChartPage> {
               style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
           ),
-
           const SizedBox(height: 2),
-
-          // 🔹 X-AXIS LABEL (DAY + DATE + TIME)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
@@ -219,60 +255,57 @@ class _ChartPageState extends State<ChartPage> {
     },
   );
 
-  // -------------------- BUILD --------------------
+  // ── Build ─────────────────────────────────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(metalTitle)),
       body: isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : widget.errorOccurred
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text.rich(
-                    TextSpan(
-                      text: 'Reload Chart', // First part of the message (bold)
-                      style: const TextStyle(
+                    const TextSpan(
+                      text: 'Reload Chart',
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: AppColors.error, // Set color for error message
+                        color: AppColors.error,
                       ),
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        widget.pressedRetry?.call();
-                      });
-                    },
+                    onPressed: () => setState(() {
+                      widget.pressedRetry?.call();
+                    }),
                     child: const Text('Retry'),
                   ),
                 ],
               ),
             )
           : chartData.isEmpty
-          ? Center(child: Text('No data available'))
+          ? const Center(child: Text('No data available'))
           : SfCartesianChart(
               trackballBehavior: _trackballBehavior,
-
               plotAreaBorderWidth: 0,
-
               primaryXAxis: _buildXAxis(),
               primaryYAxis: _isShortRange
                   ? _buildTightYAxis()
                   : _buildWideYAxis(),
-
               series: <CartesianSeries>[
                 AreaSeries<ChartData, DateTime>(
                   dataSource: widget.data,
                   xValueMapper: (d, _) => d.timestamp,
                   yValueMapper: (d, _) => d.price,
                   borderWidth: 2,
+                  // ✅ Dark border color per metal
                   borderColor: _borderColor,
+                  // ✅ Light inner gradient per metal
                   gradient: _areaGradient,
                 ),
               ],
@@ -281,7 +314,7 @@ class _ChartPageState extends State<ChartPage> {
   }
 }
 
-// -------------------- MODEL --------------------
+// ── Model ─────────────────────────────────────────────────────────────────
 
 class ChartData {
   final DateTime timestamp;

@@ -4,7 +4,7 @@ import 'package:bold_portfolio/models/spot_price_model.dart';
 import 'package:bold_portfolio/services/auth_service.dart';
 import 'package:bold_portfolio/utils/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:bold_portfolio/services/portfolio_service.dart'; // your API service
+import 'package:bold_portfolio/services/portfolio_service.dart';
 import 'dart:async';
 
 import 'package:intl/intl.dart';
@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 const snapYellow = Color.fromARGB(255, 220, 166, 2);
 
 class SpotPriceCard extends StatefulWidget {
-  final String metal; // "Gold", "Silver", "Platinum", "Palladium"
+  final String metal;
   final ValueChanged<SpotData> onSpotPriceUpdated;
 
   const SpotPriceCard({
@@ -38,18 +38,32 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
     _startPeriodicRefresh();
   }
 
-  // Method to start the periodic refresh every 20 seconds
   void _startPeriodicRefresh() {
-    _timer = Timer.periodic(Duration(seconds: 20), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 20), (timer) {
       _fetchSpotPrice();
     });
   }
 
   @override
   void dispose() {
-    // Cancel the timer when the widget is disposed to avoid memory leaks
     _timer.cancel();
     super.dispose();
+  }
+
+  // ✅ FIX 2 & 3 — metal color used for range bar + chart
+  Color get _metalColor {
+    switch (widget.metal) {
+      case 'Gold':
+        return const Color.fromARGB(255, 220, 166, 2);
+      case 'Silver':
+        return const Color(0xFF808080);
+      case 'Platinum':
+        return const Color(0xFF93C5FD);
+      case 'Palladium':
+        return const Color(0xFF2DD4BF);
+      default:
+        return snapYellow;
+    }
   }
 
   Future<void> _fetchSpotPrice() async {
@@ -63,30 +77,27 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
       final SpotPriceData data = await PortfolioService.fetchSpotPrices(
         userId: base64CustomerId,
       );
-      print("Spot Price Data: $data");
       setState(() {
         spotPrice = data.data;
         loading = false;
-        errorOccurred = false; // Reset error state
+        errorOccurred = false;
       });
       widget.onSpotPriceUpdated(spotPrice);
     } catch (e) {
       setState(() {
         loading = false;
-        errorOccurred = true; // Set error state when fetching fails
+        errorOccurred = true;
       });
       print("Error fetching spot price: $e");
     }
   }
 
-  // Replace loading spinner with skeleton
   @override
   Widget build(BuildContext context) {
     if (loading) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 1️⃣ Main Spot Price Skeleton
           Container(
             padding: const EdgeInsets.all(16),
             margin: const EdgeInsets.all(16),
@@ -97,15 +108,12 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title skeleton
                 Container(width: 150, height: 24, color: Colors.grey.shade300),
                 const SizedBox(height: 12),
-                // Price skeleton
                 Container(width: 200, height: 32, color: Colors.grey.shade300),
                 const SizedBox(height: 8),
                 Container(width: 120, height: 20, color: Colors.grey.shade300),
                 const SizedBox(height: 16),
-                // Linear progress skeleton
                 Container(
                   width: double.infinity,
                   height: 8,
@@ -130,10 +138,7 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
               ],
             ),
           ),
-
           const SizedBox(height: 16),
-
-          // 2️⃣ Gram & Kilo small card skeletons
           Row(
             children: [
               Expanded(
@@ -170,20 +175,18 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
             const SizedBox(height: 16),
             Text.rich(
               TextSpan(
-                text:
-                    'No internet connection', // First part of the message (bold)
+                text: 'No internet connection',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.error, // Set color for error message
+                  color: AppColors.error,
                 ),
-                children: [
+                children: const [
                   TextSpan(
                     text:
                         '\nPlease check your network connection and try again.',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.normal,
-                      color: AppColors
-                          .error, // Keep the same error color for the second part
+                      color: AppColors.error,
                     ),
                   ),
                 ],
@@ -197,7 +200,7 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
                   loading = true;
                   errorOccurred = false;
                 });
-                _fetchSpotPrice(); // Retry fetching data
+                _fetchSpotPrice();
               },
               child: const Text('Retry'),
             ),
@@ -206,8 +209,7 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
       );
     }
 
-    // ---------------- REAL CONTENT ----------------
-    // Extract metal data
+    // ── Extract metal data ─────────────────────────────────────────────────
     late double ounce,
         gram,
         kg,
@@ -260,7 +262,7 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
     changeKg = changeGram * 1000;
 
     final range = (highSpot - lowSpot).abs().clamp(0.001, double.infinity);
-    final boundedPosition = (((ounce - lowSpot) / range).clamp(0, 1) as double);
+    final boundedPosition = ((ounce - lowSpot) / range).clamp(0.0, 1.0);
 
     Color changeColor = changeOunce >= 0 ? Colors.green : Colors.red;
     Icon changeIcon = changeOunce >= 0
@@ -272,7 +274,7 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1️⃣ Main Spot Price Container
+        // ── Main Spot Price Card ───────────────────────────────────────────
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -326,13 +328,14 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
               const SizedBox(height: 16),
               const Text("Today's Range"),
               const SizedBox(height: 8),
+
+              // ✅ FIX 2 — range bar color changes per metal
               LinearProgressIndicator(
                 value: boundedPosition,
-                color: widget.metal == 'Silver'
-                    ? Colors.grey.shade700
-                    : snapYellow,
+                color: _metalColor, // ✅ dynamic metal color
                 backgroundColor: Colors.grey.shade300,
               ),
+
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -347,7 +350,7 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
 
         const SizedBox(height: 16),
 
-        // 2️⃣ Small Cards
+        // ── Small Cards ───────────────────────────────────────────────────
         Row(
           children: [
             _smallCard("Gram", gram, changeGram),
@@ -371,11 +374,9 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: _cardDecoration(),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title
             Text(
               title,
               style: const TextStyle(
@@ -384,15 +385,11 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
               ),
             ),
             const SizedBox(height: 8),
-
-            // Value
             Text(
               "\$${currencyFormat.format(value)}",
               style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
-
-            // Change with icon
             Row(
               children: [
                 changeIcon,
