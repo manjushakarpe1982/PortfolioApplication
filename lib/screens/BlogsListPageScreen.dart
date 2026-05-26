@@ -1,4 +1,4 @@
-import 'package:bold_portfolio/screens/BlogDetailsScreen.dart';
+﻿import 'package:bold_portfolio/screens/BlogDetailsScreen.dart';
 import 'package:bold_portfolio/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -23,7 +23,6 @@ class _BlogListPageState extends State<BlogListPage> {
   int totalPages = 0; // 🔥 IMPORTANT
 
   Future<BlogPageResult> fetchBlogsList(int pageNumber, String blogType) async {
-    print('Fetching blogs: type=$blogType, page=$pageNumber');
     final Uri url;
     if (blogType == 'industryNews') {
       url = Uri.parse(
@@ -34,7 +33,6 @@ class _BlogListPageState extends State<BlogListPage> {
         '$baseUrl/UI/GetBPMBlogs?BlogType=$blogType&page=$pageNumber',
       );
     }
-    print("url: $url");
     final response = await http.get(url);
 
     if (response.statusCode != 200) {

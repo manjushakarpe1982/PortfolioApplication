@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 
 class TimerProvider with ChangeNotifier {
@@ -50,7 +50,6 @@ class TimerProvider with ChangeNotifier {
   /// Records the exact time when the user minimizes the app.
   void recordStartTime() {
     _backGroundTimestamp = DateTime.now();
-    debugPrint("Background time recorded: $_backGroundTimestamp");
   }
 
   /// Compares current time with background time.
@@ -64,7 +63,6 @@ class TimerProvider with ChangeNotifier {
     // Clear the timestamp after checking so it doesn't trigger again immediately
     _backGroundTimestamp = null;
 
-    debugPrint("Minutes passed since background: ${difference.inMinutes}");
 
     // Change '5' to any number of minutes you prefer for testing
     return difference.inMinutes >= 15;

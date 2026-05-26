@@ -1,4 +1,4 @@
-import 'package:bold_portfolio/models/portfolio_model.dart';
+﻿import 'package:bold_portfolio/models/portfolio_model.dart';
 import 'package:bold_portfolio/screens/CandleChartLandscapeScreen.dart';
 import 'package:bold_portfolio/services/auth_service.dart';
 import 'package:bold_portfolio/widgets/CandlestickChartWidget.dart';
@@ -68,7 +68,6 @@ class _GraphsScreenState extends State<GraphsScreen> {
       ); // Or refreshDataFromAPIs() depending on what you want
       _isLoading = false;
     } catch (error) {
-      debugPrint('Error fetching chart data: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to fetch chart data')),
       );

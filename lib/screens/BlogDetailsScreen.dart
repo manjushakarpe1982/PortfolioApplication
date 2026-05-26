@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:bold_portfolio/screens/BlogsListPageScreen.dart';
 import 'package:bold_portfolio/utils/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -25,7 +25,6 @@ class BlogDetailsPage extends StatelessWidget {
 
   Future<Blog> fetchBlogDetails(String title) async {
     final baseUrl = dotenv.env['API_URL']!;
-    print("title ${title} $type");
     final Uri url;
     if (type == 'Blogs') {
       url = Uri.parse('$baseUrl/UI/GetBPMBlogs?title=$title');
@@ -42,12 +41,10 @@ class BlogDetailsPage extends StatelessWidget {
     final list = type == 'Blogs'
         ? jsonResponse['data']['items']['dataList'] as List
         : jsonResponse['data']['dataList'] as List;
-    // print("list ${list}");
     final blogDescription = list.firstWhere(
       (values) => values['newsTitleWithHypen'] == title,
       orElse: () => null,
     );
-    print("blogDescription ${blogDescription}");
 
     return Blog.fromJson(blogDescription ?? list.first);
   }

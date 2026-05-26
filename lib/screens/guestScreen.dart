@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:ui';
 import 'dart:io';
 import 'package:bold_portfolio/screens/bold_webview_screen.dart';
@@ -67,9 +67,7 @@ class _GuestscreenState extends State<Guestscreen> with WidgetsBindingObserver {
     // Get app version and check for update
     final appVersion = await _getAppVersion();
     final updateRequired = await _checkForUpdate(appVersion);
-    print("App Version: $appVersion, Update Required: $updateRequired");
     final notNowClicked = await authService.getNotNowFlag();
-    print("Not Now Clicked: $notNowClicked");
     if (updateRequired && !notNowClicked) {
       // If update required, show the update dialog
       showUpdateDialog(context);
@@ -197,7 +195,6 @@ class _GuestscreenState extends State<Guestscreen> with WidgetsBindingObserver {
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({"version": version}),
     );
-    print("update check response: ${response.statusCode} ${response.body}");
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
 
@@ -205,7 +202,6 @@ class _GuestscreenState extends State<Guestscreen> with WidgetsBindingObserver {
       return data['success'] == false && data['data'] == "Update Required";
     } else {
       // Handle error (optional)
-      print('Failed to check for updates');
       return false;
     }
   }
@@ -280,7 +276,6 @@ class _GuestscreenState extends State<Guestscreen> with WidgetsBindingObserver {
         final user = await authService.getUser();
 
         if (!mounted) return;
-        debugPrint("token for app: $token");
         // ✅ Guest user — use the separate clean WebView
         await Navigator.push(
           context,
@@ -371,7 +366,6 @@ class _GuestscreenState extends State<Guestscreen> with WidgetsBindingObserver {
           SpotPriceScreen(
             onLatestSpotPriceChanged: (spotData) {
               // Handle the updated spot price here if needed
-              print("Latest spot price updated: $spotData");
               setState(() {
                 parentSpotPrice = spotData;
               });
@@ -533,7 +527,6 @@ class _GuestscreenState extends State<Guestscreen> with WidgetsBindingObserver {
         return SpotPriceScreen(
           onLatestSpotPriceChanged: (spotData) {
             // Handle the updated spot price here if needed
-            print("Latest spot price updated: $spotData");
             setState(() {
               parentSpotPrice = spotData;
             });
@@ -545,14 +538,11 @@ class _GuestscreenState extends State<Guestscreen> with WidgetsBindingObserver {
   void _checkForPinOrLogin(int selectedIndexForGuest) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final authService = AuthService();
-    print(
       "Checking for PIN... Current view: ${currentView}, selectedIndex: $selectedIndexForGuest",
     );
 
     if (authProvider.isAuthenticated) {
-      print("User is authenticated, checking PIN...");
       authService.getPin().then((fetchedUserPin) {
-        print("Fetched User PIN: $fetchedUserPin");
         if (fetchedUserPin == null || fetchedUserPin == '0') {
           setState(() {
             selectedIndex = 1;
@@ -564,18 +554,15 @@ class _GuestscreenState extends State<Guestscreen> with WidgetsBindingObserver {
           setState(() {
             selectedIndex = 1; // Set selectedIndex to 1 for Portfolio
             currentView = GuestView.pin; // Set the current view to Login screen
-            print("Navigating to Login screen...");
           });
         }
       });
     } else if (selectedIndexForGuest == 0) {
-      print("Selected Index is 0, going to Home...");
       setState(() {
         selectedIndex = 0;
         currentView = GuestView.home; // Show Home Screen
       });
     } else {
-      print("User is not authenticated, going to login...");
       setState(() {
         selectedIndex = 1; // Show Portfolio screen
         currentView = GuestView.login; // Show login screen

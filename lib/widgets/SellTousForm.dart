@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'dart:typed_data';
 import 'package:bold_portfolio/models/portfolio_model.dart';
 import 'package:bold_portfolio/services/auth_service.dart';
@@ -60,7 +60,6 @@ class _SellFormState extends State<SellForm> {
       final String extension = path.extension(image.name).toLowerCase().trim();
       final allowedExtensions = ['.jpg', '.jpeg', '.png'];
 
-      print("File extension: $extension");
 
       if (!allowedExtensions.contains(extension)) {
         Fluttertoast.showToast(
@@ -112,10 +111,8 @@ class _SellFormState extends State<SellForm> {
             textColor: Colors.white,
             toastLength: Toast.LENGTH_LONG,
           );
-          print('Image upload failed with status: ${response.statusCode}');
         }
       } catch (e) {
-        print('Error uploading image: $e');
       }
     }
   }

@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 
 import 'package:bold_portfolio/services/auth_service.dart';
 import 'package:flutter/material.dart';
@@ -364,7 +364,6 @@ class _PredictionPopupState extends State<PredictionPopup> {
         _isLoading = false;
       });
     } catch (e) {
-      print("Error fetching initial data: $e");
       Fluttertoast.showToast(msg: "Failed to load prediction data.");
       // Leave predictions as the default
     }
@@ -662,7 +661,6 @@ class _PredictionPopupState extends State<PredictionPopup> {
       Fluttertoast.showToast(msg: "Predictions saved successfully!");
       Navigator.of(context).pop();
     } catch (e) {
-      print("Error saving predictions: $e");
       Fluttertoast.showToast(msg: "Failed to save predictions.");
     } finally {
       setState(() {

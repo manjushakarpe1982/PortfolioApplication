@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:bold_portfolio/services/auth_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -27,9 +27,7 @@ Future<void> main() async {
 
   try {
     await dotenv.load(fileName: envFile);
-    debugPrint('✅ .env loaded: $envFile');
   } catch (e) {
-    debugPrint('❌ .env load failed: $e');
   }
 
   runApp(
@@ -86,9 +84,7 @@ void onStart(ServiceInstance service) async {
   // ✅ Initialize dotenv again inside background isolate
   try {
     await dotenv.load(fileName: 'assets/env/.env.stagging');
-    debugPrint('✅ dotenv loaded in background isolate');
   } catch (e) {
-    debugPrint('❌ dotenv load failed in background: $e');
   }
 
   service.on('stopService').listen((event) {
@@ -96,19 +92,15 @@ void onStart(ServiceInstance service) async {
   });
 
   Timer.periodic(const Duration(minutes: 1), (timer) async {
-    debugPrint('⏰ Background service heart-beat');
 
     final baseUrl = dotenv.env['API_URL'];
     if (baseUrl == null) {
-      debugPrint('❌ API_URL missing');
       return;
     }
 
     try {
       final response = await http.get(Uri.parse(baseUrl));
-      debugPrint('✅ API status: ${response.statusCode}');
     } catch (e) {
-      debugPrint('❌ API error: $e');
     }
   });
 }

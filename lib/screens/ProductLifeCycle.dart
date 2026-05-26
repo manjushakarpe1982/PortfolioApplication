@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:bold_portfolio/models/portfolio_model.dart';
 import 'package:bold_portfolio/providers/portfolio_provider.dart';
 import 'package:bold_portfolio/screens/holdings_screen.dart';
@@ -224,7 +224,6 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
               (_productLife?.productsForPortfolio[0] ?? []);
 
           final metalType = widget.metal;
-          print("sdfsdfs ${metalType}");
 
           // ✅ CHANGED — now supports Gold, Silver, Platinum, Palladium
           final double currentValue = _getCurrentValue(
@@ -247,7 +246,6 @@ class _ProductLifecycleScreenState extends State<ProductLifecycleScreen> {
               "https://res.cloudinary.com/bold-pm/image/upload/q_auto:good/Graphics/no_img_preview_product.png";
 
           final sour = productsForPortfolios['sourceName'];
-          print("sdfsdf $sour");
           final transactionProducts = (_productLife?.transactions ?? []);
 
           String formatPrice(num price) {

@@ -1,4 +1,4 @@
-// services/api_service.dart
+﻿// services/api_service.dart
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
@@ -35,7 +35,6 @@ Future<bool> updatePortfolioSettings({
   if (response.statusCode == 200) {
     return true;
   } else {
-    print("API Error: ${response.statusCode} - ${response.body}");
     return false;
   }
 }

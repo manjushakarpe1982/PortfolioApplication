@@ -1,4 +1,4 @@
-import 'package:bold_portfolio/services/biometric_auth_service.dart';
+﻿import 'package:bold_portfolio/services/biometric_auth_service.dart';
 import 'package:flutter/material.dart';
 import 'main_screen.dart';
 
@@ -34,7 +34,6 @@ class _BiometricLoginScreenState extends State<BiometricLoginScreen> {
               onPressed: () async {
                 bool check = await BiometricAuthService()
                     .authenticateLocalUser();
-                print("Biometric Auth Result: $check");
                 if (check) {
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(builder: (context) => const MainScreen()),

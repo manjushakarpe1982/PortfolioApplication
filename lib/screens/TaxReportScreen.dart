@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:bold_portfolio/screens/main_screen.dart';
 import 'package:bold_portfolio/utils/app_colors.dart';
 import 'package:bold_portfolio/widgets/common_app_bar.dart';
@@ -695,7 +695,6 @@ class _TaxReportPageState extends State<TaxReportScreen> {
           );
         }
 
-        debugPrint('✅ PDF saved at: $filePath');
       } else if (Platform.isIOS) {
         final directory = await getApplicationDocumentsDirectory();
         final filePath =
@@ -716,10 +715,8 @@ class _TaxReportPageState extends State<TaxReportScreen> {
             ),
           );
         }
-        debugPrint('✅ PDF saved at: $filePath');
       }
     } catch (e) {
-      debugPrint('❌ Error saving PDF: $e');
     }
   }
 

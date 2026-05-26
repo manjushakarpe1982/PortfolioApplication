@@ -1,4 +1,4 @@
-// import 'package:google_sign_in/google_sign_in.dart';
+﻿// import 'package:google_sign_in/google_sign_in.dart';
 // import 'package:flutter/foundation.dart'; // for kIsWeb
 
 // class GoogleSignInApi {
@@ -12,14 +12,12 @@
 //     try {
 //       await _googleSignIn.signOut();
 //       final GoogleSignInAccount? user = await _googleSignIn.signIn();
-//       print("userdetails1 $user");
 //       if (user == null) {
 //         // If sign-in is cancelled by the user
 //         return null;
 //       }
 
 //       final GoogleSignInAuthentication googleAuth = await user.authentication;
-//       print("userdetails2 ${googleAuth.accessToken}");
 
 //       // Now you can retrieve the Google token
 //       final String googleToken = googleAuth.accessToken ?? '';
@@ -33,7 +31,6 @@
 //         'id': user.id,
 //       };
 //     } catch (e) {
-//       print('Google sign-in failed: $e');
 //       return null;
 //     }
 //   }

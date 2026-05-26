@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:bold_portfolio/models/spot_price_model.dart';
 import 'package:bold_portfolio/widgets/chartData.dart';
 import 'package:bold_portfolio/widgets/spotPriceCard.dart';
@@ -76,8 +76,6 @@ class _SpotPriceScreenState extends State<SpotPriceScreen> {
 
     try {
       final response = await http.get(Uri.parse(url));
-      print("API URL: $url");
-      print("Response Body: ${response.body}");
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
@@ -90,14 +88,11 @@ class _SpotPriceScreenState extends State<SpotPriceScreen> {
                 .toList();
           });
         } else {
-          debugPrint("API Error: Success flag is false");
         }
       } else {
-        debugPrint("API Error: ${response.statusCode}");
         errorOccurred = true;
       }
     } catch (e) {
-      debugPrint("API Exception: $e");
       errorOccurred = true;
     } finally {
       setState(() => isLoading = false);

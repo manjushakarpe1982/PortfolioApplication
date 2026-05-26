@@ -1,4 +1,4 @@
-import 'package:bold_portfolio/providers/auth_provider.dart';
+﻿import 'package:bold_portfolio/providers/auth_provider.dart';
 import 'package:bold_portfolio/screens/guestScreen.dart';
 import 'package:bold_portfolio/screens/login_screen.dart';
 import 'package:bold_portfolio/screens/main_screen.dart';
@@ -70,7 +70,6 @@ class _NewPinEntryScreenState extends State<NewPinEntryScreen> {
   void _checkBiometricAvailability() async {
     bool isAvailable = await _biometricAuthService
         .canAuthenticateWithBiometrics();
-    print('Biometric Available: $isAvailable');
     setState(() {
       _isBiometricAvailable = isAvailable;
     });
@@ -133,7 +132,6 @@ class _NewPinEntryScreenState extends State<NewPinEntryScreen> {
           prefs.getBool('biometric_enabled_$currentUserKey') ?? false;
     });
     bool check = false;
-    print('Biometric Login Enabled: $_showBiometricLogin');
     if (_showBiometricLogin) {
       check = await BiometricAuthService().authenticateLocalUser();
     }

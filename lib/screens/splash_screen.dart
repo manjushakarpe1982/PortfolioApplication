@@ -1,4 +1,4 @@
-import 'package:bold_portfolio/screens/guestScreen.dart';
+﻿import 'package:bold_portfolio/screens/guestScreen.dart';
 import 'package:bold_portfolio/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -31,13 +31,10 @@ class _SplashScreenState extends State<SplashScreen> {
       await authProvider.checkAuthStatus();
       final authService = AuthService();
       final fetchedUserPin = await authService.getPin();
-      print(
-        'Fetched User PIN: $fetchedUserPin ${authProvider.isAuthenticated}',
-      );
+
       if (mounted) {
         // if (authProvider.isAuthenticated &&
         //     ((fetchedUserPin == null || fetchedUserPin == '0'))) {
-        //   print("Navigating to MainScreen");
         //   Navigator.of(context).pushReplacement(
         //     MaterialPageRoute(builder: (context) => MainScreen()),
         //   );

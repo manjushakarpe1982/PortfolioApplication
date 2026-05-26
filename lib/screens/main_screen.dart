@@ -1,4 +1,4 @@
-import 'package:bold_portfolio/services/auth_service.dart';
+﻿import 'package:bold_portfolio/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -48,16 +48,13 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    print("Lifecycle: $state");
 
     if (state == AppLifecycleState.paused) {
       _backgroundTime = DateTime.now();
       _wentToBackground = true;
-      print("App really background at $_backgroundTime $_currentIndex");
     }
 
     if (state == AppLifecycleState.resumed && _wentToBackground) {
-      print("App resumed after background");
       _checkIfPinRequired();
       _wentToBackground = false;
     }
@@ -65,7 +62,6 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     // // 🔥 APP KILLED / REMOVED FROM RECENTS
     // if (state == AppLifecycleState.detached) {
     //   final AuthService authService = AuthService();
-    //   print("App detached — resetting update popup flag");
     // authService.setNotNowFlag(false);
     // }
   }
@@ -74,11 +70,8 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   void _checkIfPinRequired() {
     if (_backgroundTime == null || _pinForced) return;
 
-    print("background time: $_backgroundTime");
 
     final diff = DateTime.now().difference(_backgroundTime!);
-    print("Background duration:  ${diff.inMinutes} min");
-    print("_currentIndex: $_currentIndex");
     if (diff.inMinutes >= 15) {
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final authService = AuthService();
@@ -87,7 +80,6 @@ class MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
       } else {
         if (authProvider.isAuthenticated) {
           authService.getPin().then((fetchedUserPin) {
-            print("Fetched User PIN: $fetchedUserPin");
             if (fetchedUserPin == null || fetchedUserPin == '0') {
               setState(() {
                 Navigator.of(context).pushReplacement(

@@ -1,4 +1,4 @@
-import 'package:bold_portfolio/screens/ForgotPasswordScreen.dart';
+﻿import 'package:bold_portfolio/screens/ForgotPasswordScreen.dart';
 import 'package:bold_portfolio/screens/guestScreen.dart';
 import 'package:bold_portfolio/screens/setting_pin_screen.dart';
 import 'package:bold_portfolio/services/auth_service.dart';
@@ -167,7 +167,6 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           );
         } else {
-          print("Fetched User Pin outside: ${fetchedUser?.pinForApp}");
           // Navigate to PinEntryScreen if PinForApp is null or empty
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => const MainScreen()),

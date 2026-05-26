@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 
 import 'package:bold_portfolio/services/auth_service.dart';
 import 'package:flutter/foundation.dart';
@@ -36,7 +36,6 @@ class PortfolioProvider with ChangeNotifier {
 
       // Log the spot price response for debugging
       if (kDebugMode) {
-        print('Fetched Spot Prices: ${results[0]}');
       }
 
       // Ensure the results are the correct type
@@ -59,16 +58,13 @@ class PortfolioProvider with ChangeNotifier {
           _errorMessage = null;
         } else {
           _errorMessage = 'Invalid data format';
-          print('Error: Invalid data format in portfolio data');
         }
       } else {
         _errorMessage = 'Invalid data format for Portfolio Data';
-        print('Error: Invalid portfolio data format');
       }
     } catch (e) {
       _errorMessage = 'Failed to load data: ${e.toString()}';
       if (kDebugMode) {
-        print('Error loading data: $e');
       }
     }
 
@@ -105,7 +101,6 @@ class PortfolioProvider with ChangeNotifier {
 
       // Log the spot price response for debugging
       if (kDebugMode) {
-        print('Refreshed Spot Prices: ${results[0]}');
       }
 
       // Ensure the results are the correct type
@@ -118,12 +113,10 @@ class PortfolioProvider with ChangeNotifier {
         _errorMessage = null;
       } else {
         _errorMessage = 'Invalid data format';
-        print('Error: Invalid data format');
       }
     } catch (e) {
       _errorMessage = 'Failed to refresh data: ${e.toString()}';
       if (kDebugMode) {
-        print('Error refreshing data: $e');
       }
     }
 

@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -51,7 +51,6 @@ class _GuestWebViewScreenState extends State<GuestWebViewScreen> {
   Future<void> _clearSessionCookies() async {
     final cookieManager = CookieManager.instance();
     await cookieManager.deleteAllCookies();
-    debugPrint('[GuestWebView] All cookies cleared for guest session');
   }
 
   @override
@@ -178,7 +177,6 @@ class _GuestWebViewScreenState extends State<GuestWebViewScreen> {
               _loadingProgress = 1.0;
               _hasError = true;
             });
-          debugPrint('[GuestWebView] Error: ${error.description}');
         }
       },
       // ✅ Allow all navigation — guest can browse freely

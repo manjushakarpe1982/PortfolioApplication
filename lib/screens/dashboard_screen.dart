@@ -1,4 +1,4 @@
-import 'package:bold_portfolio/models/portfolio_model.dart';
+﻿import 'package:bold_portfolio/models/portfolio_model.dart';
 import 'package:bold_portfolio/services/auth_service.dart';
 import 'package:bold_portfolio/widgets/ActualPriceOption.dart';
 import 'package:bold_portfolio/widgets/InvestmentFeature.dart';
@@ -61,7 +61,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       final provider = Provider.of<PortfolioProvider>(context, listen: false);
       await provider.refreshDataFromAPIs(provider.frequency);
     } catch (error) {
-      debugPrint('Error fetching chart data: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to fetch chart data')),
       );

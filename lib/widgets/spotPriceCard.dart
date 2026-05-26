@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 
 import 'package:bold_portfolio/models/spot_price_model.dart';
 import 'package:bold_portfolio/services/auth_service.dart';
@@ -88,7 +88,6 @@ class _SpotPriceCardState extends State<SpotPriceCard> {
         loading = false;
         errorOccurred = true;
       });
-      print("Error fetching spot price: $e");
     }
   }
 

@@ -1,4 +1,4 @@
-import 'package:bold_portfolio/services/biometric_auth_service.dart';
+﻿import 'package:bold_portfolio/services/biometric_auth_service.dart';
 import 'package:bold_portfolio/services/pin_service.dart' show PinService;
 import 'package:bold_portfolio/utils/app_colors.dart';
 import 'package:bold_portfolio/widgets/common_app_bar.dart';
@@ -379,7 +379,6 @@ class _SettingPinScreenState extends State<SettingPinScreen> {
                                 ? () async {
                                     bool check = await BiometricAuthService()
                                         .authenticateLocalUser();
-                                    print("Biometric Auth Result: $check");
                                     if (check) {
                                       Navigator.of(context).pushReplacement(
                                         MaterialPageRoute(

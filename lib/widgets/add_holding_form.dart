@@ -1,4 +1,4 @@
-// Your existing imports
+﻿// Your existing imports
 import 'dart:async';
 import 'dart:convert';
 import 'package:bold_portfolio/services/auth_service.dart';
@@ -155,7 +155,6 @@ class _AddHoldingFormState extends State<AddHoldingForm> {
             'imagePath': null,
           });
         }
-        print("outdide ");
 
         setState(() {
           searchResults = filteredProducts;
@@ -307,7 +306,6 @@ class _AddHoldingFormState extends State<AddHoldingForm> {
           premiumCostController.text = premium.toStringAsFixed(2);
         });
       } else {
-        debugPrint('Spot price API failed to respond properly.');
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -316,7 +314,6 @@ class _AddHoldingFormState extends State<AddHoldingForm> {
         );
       }
     } catch (e) {
-      debugPrint('Error fetching spot price: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(' An error occurred. Please try again later.')),
       );
