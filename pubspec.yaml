@@ -106,13 +106,16 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
-  dependency_overrides:
-  font_awesome_flutter: 10.7.0
-
 flutter_native_splash:
   color: "#FFFFFF" 
   image: assets/images/bold_logo.png 
   android_12:
     color: "#FFFFFF"  
     image: assets/images/bold_logo.png 
+
+
+
+dependency_overrides:
+  font_awesome_flutter: 10.7.0
+
 
