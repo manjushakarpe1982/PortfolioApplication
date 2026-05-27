@@ -538,6 +538,11 @@ class _GuestscreenState extends State<Guestscreen> with WidgetsBindingObserver {
   void _checkForPinOrLogin(int selectedIndexForGuest) {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final authService = AuthService();
+<<<<<<< HEAD
+=======
+     
+
+>>>>>>> 0d650fcfb4cf9ea3488b88b63fcb78324cbbda55
     if (authProvider.isAuthenticated) {
       authService.getPin().then((fetchedUserPin) {
         if (fetchedUserPin == null || fetchedUserPin == '0') {

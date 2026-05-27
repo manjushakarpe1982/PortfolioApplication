@@ -15,6 +15,15 @@ jobs:
           channel: 'stable'
           architecture: x64
 
+<<<<<<< HEAD
+=======
+      - name: Fix font_awesome_flutter version
+        run: |
+          sed -i '' 's/font_awesome_flutter: .*/font_awesome_flutter: 10.7.0/' pubspec.yaml
+          echo "Verifying fix:"
+          grep font_awesome_flutter pubspec.yaml
+
+>>>>>>> 0d650fcfb4cf9ea3488b88b63fcb78324cbbda55
       - run: flutter pub get
 
       - run: pod repo update
