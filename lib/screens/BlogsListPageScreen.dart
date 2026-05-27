@@ -7,7 +7,6 @@ import 'package:share_plus/share_plus.dart';
 import 'package:html/parser.dart' as html; // For stripping HTML tags
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class BlogListPage extends StatefulWidget {
   BlogListPage({super.key});
@@ -417,23 +416,23 @@ class BlogShareComponent extends StatelessWidget {
       children: [
         if (showShareText == true)
           const Text('Share', style: TextStyle(fontWeight: FontWeight.bold)),
+
+        // Facebook
         IconButton(
-          icon: const FaIcon(
-            FontAwesomeIcons.facebookF,
-            color: Color(0xFF1877F2),
-            size: 18,
-          ),
+          icon: const Icon(Icons.facebook, color: Color(0xFF1877F2), size: 22),
           onPressed: () {
             Share.share(
               'https://www.facebook.com/sharer/sharer.php?u=$redirectionUrl',
             );
           },
         ),
+
+        // X / Twitter
         IconButton(
-          icon: const FaIcon(
-            FontAwesomeIcons.xTwitter,
-            size: 18,
+          icon: const Icon(
+            Icons.alternate_email,
             color: Colors.black,
+            size: 20,
           ),
           onPressed: () {
             Share.share(
@@ -441,12 +440,10 @@ class BlogShareComponent extends StatelessWidget {
             );
           },
         ),
+
+        // LinkedIn
         IconButton(
-          icon: const FaIcon(
-            FontAwesomeIcons.linkedinIn,
-            size: 18,
-            color: Color(0xFF0077B5),
-          ),
+          icon: const Icon(Icons.work, color: Color(0xFF0077B5), size: 20),
           onPressed: () {
             Share.share(
               'https://www.linkedin.com/sharing/share-offsite/?url=$redirectionUrl',
